@@ -102,7 +102,7 @@ export default function DashboardLayout({ children }) {
   };
 
   const getPageTitle = () => {
-    if (pathname === '/dashboard') return 'Dashboard';
+    if (pathname === '/dashboard' || pathname === '/dashboard/faculty' || pathname === '/dashboard/student') return 'Dashboard';
     if (pathname.includes('/courses')) return 'Courses';
     if (pathname.includes('/assignments')) return 'Assignments';
     if (pathname.includes('/submissions')) return 'Submissions';
@@ -180,17 +180,20 @@ export default function DashboardLayout({ children }) {
         <nav className="sidebar-nav">
           <div className="sidebar-section">
             <div className="sidebar-section-title">Main Menu</div>
-            {NAV_ITEMS.common.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`sidebar-link ${pathname === item.href ? 'active' : ''}`}
-                onClick={() => setSidebarOpen(false)}
-              >
-                <span className="sidebar-link-icon">{renderIcon(item.icon)}</span>
-                <span>{item.label}</span>
-              </Link>
-            ))}
+            {NAV_ITEMS.common.map((item) => {
+              const targetHref = item.href === '/dashboard' ? `/dashboard/${user.role}` : item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={targetHref}
+                  className={`sidebar-link ${pathname === targetHref ? 'active' : ''}`}
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <span className="sidebar-link-icon">{renderIcon(item.icon)}</span>
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
           </div>
 
           {user.role === 'faculty' && (
