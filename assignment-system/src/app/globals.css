@@ -1535,3 +1535,37 @@ h4 { font-size: 1.125rem; }
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
 }
+
+/* Specific Dark Mode Overrides for High Contrast Sidebar and Navigation */
+[data-theme="dark"] .sidebar {
+  background: rgba(13, 16, 37, 0.92) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 2px 0 25px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme="dark"] .topbar {
+  background: rgba(13, 16, 37, 0.92) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 2px 25px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme="dark"] .sidebar-link {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .sidebar-link:hover {
+  color: #ffffff !important;
+  background: rgba(99, 102, 241, 0.15) !important;
+}
+
+[data-theme="dark"] .sidebar-link.active {
+  color: #ffffff !important;
+  background: rgba(99, 102, 241, 0.25) !important;
+  box-shadow: inset 3px 0 0 var(--accent-primary) !important;
+  font-weight: 600 !important;
+}
+
+[data-theme="dark"] .sidebar-section-title {
+  color: #64748b !important;
+}
+
