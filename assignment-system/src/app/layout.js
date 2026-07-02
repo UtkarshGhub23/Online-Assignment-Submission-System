@@ -13,6 +13,9 @@ export default function RootLayout({ children }) {
       <body>
         <div className="bg-blob-1"></div>
         <div className="bg-blob-2"></div>
+        <video autoPlay loop muted playsInline className="bg-video">
+          <source src="/bg-video.mp4" type="video/mp4" />
+        </video>
         <AuthProvider>
           {children}
         </AuthProvider>

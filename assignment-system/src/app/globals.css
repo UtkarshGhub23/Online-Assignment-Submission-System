@@ -167,6 +167,23 @@ body::after {
   opacity: 0.8;
 }
 
+/* Looping video background */
+.bg-video {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  z-index: -3;
+  pointer-events: none;
+  opacity: 0.08;
+  transition: opacity var(--transition-normal);
+}
+
+[data-theme="dark"] .bg-video {
+  opacity: 0.14;
+}
+
 /* Floating gradient blobs */
 .bg-blob-1, .bg-blob-2 {
   position: fixed;
