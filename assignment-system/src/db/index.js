@@ -58,9 +58,10 @@ function seedDatabase(database) {
   const insertAssignment = database.prepare(
     `INSERT INTO assignments (
       course_id, title, subject, department, semester, section, assignment_number,
-      description, detailed_instructions, due_date, max_marks, created_by,
+      description, detailed_instructions, supporting_documents, reference_materials,
+      due_date, max_marks, created_by,
       status, priority, estimated_time, late_allowed, max_file_size, allowed_file_types
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   );
 
   const insertNotification = database.prepare(

@@ -16,8 +16,22 @@ export default function RegisterPage() {
   const [section, setSection] = useState('Section A');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { register } = useAuth();
+  const { register, login } = useAuth();
   const router = useRouter();
+
+  const handleSkip = async () => {
+    setError('');
+    setLoading(true);
+    const skipEmail = role === 'faculty' ? 'teacher@assignsys.com' : 'student@assignsys.com';
+    const skipPass = role === 'faculty' ? 'teacher123' : 'student123';
+    const result = await login(skipEmail, skipPass, false);
+    if (result.success) {
+      router.push('/dashboard');
+    } else {
+      setError(result.error);
+    }
+    setLoading(false);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -204,14 +218,24 @@ export default function RegisterPage() {
             </>
           )}
 
-          <button
-            type="submit"
-            className="btn btn-primary btn-lg w-full"
-            disabled={loading}
-            style={{ marginTop: 'var(--spacing-md)' }}
-          >
-            {loading ? 'Creating account...' : 'Create Account'}
-          </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)', marginTop: 'var(--spacing-md)' }}>
+            <button
+              type="submit"
+              className="btn btn-primary btn-lg w-full"
+              disabled={loading}
+            >
+              {loading ? 'Creating account...' : 'Create Account'}
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary btn-lg w-full"
+              onClick={handleSkip}
+              disabled={loading}
+              style={{ borderColor: 'var(--accent-primary)', color: 'var(--accent-primary)' }}
+            >
+              Skip to Dashboard
+            </button>
+          </div>
         </form>
 
         <div className="auth-footer">
