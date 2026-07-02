@@ -42,14 +42,56 @@ export default function RegisterPage() {
 
   return (
     <div className="auth-page">
-      <div className="auth-card glass-card">
+      <div className="auth-card glass-card" style={{ maxWidth: '440px', width: '100%' }}>
         <div className="auth-logo">
           <div className="auth-logo-icon" style={{ color: 'white', fontWeight: 'bold' }}>AP</div>
           <span className="auth-logo-text">AssignPro</span>
         </div>
 
-        <h1 className="auth-title">Create Account</h1>
-        <p className="auth-subtitle">Join the university assignment portal</p>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '4px',
+          padding: '4px',
+          background: 'rgba(99, 102, 241, 0.05)',
+          borderRadius: 'var(--radius-md)',
+          border: '1px solid var(--border-color)',
+          marginBottom: 'var(--spacing-lg)'
+        }}>
+          <button
+            type="button"
+            className={`btn btn-sm ${role === 'faculty' ? 'btn-primary' : ''}`}
+            style={{
+              background: role === 'faculty' ? 'var(--gradient-primary)' : 'transparent',
+              color: role === 'faculty' ? 'white' : 'var(--text-secondary)',
+              border: 'none',
+              boxShadow: role === 'faculty' ? 'var(--shadow-sm)' : 'none',
+              padding: 'var(--spacing-sm)'
+            }}
+            onClick={() => setRole('faculty')}
+          >
+            Faculty Account
+          </button>
+          <button
+            type="button"
+            className={`btn btn-sm ${role === 'student' ? 'btn-primary' : ''}`}
+            style={{
+              background: role === 'student' ? 'var(--gradient-primary)' : 'transparent',
+              color: role === 'student' ? 'white' : 'var(--text-secondary)',
+              border: 'none',
+              boxShadow: role === 'student' ? 'var(--shadow-sm)' : 'none',
+              padding: 'var(--spacing-sm)'
+            }}
+            onClick={() => setRole('student')}
+          >
+            Student Account
+          </button>
+        </div>
+
+        <h1 className="auth-title">
+          {role === 'faculty' ? 'Register Faculty' : 'Register Student'}
+        </h1>
+        <p className="auth-subtitle">Create your university portal account</p>
 
         {error && <div className="auth-error">{error}</div>}
 
@@ -97,34 +139,19 @@ export default function RegisterPage() {
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-sm)' }}>
-            <div className="form-group">
-              <label className="form-label" htmlFor="role">Register As</label>
-              <select
-                id="role"
-                className="form-select"
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-              >
-                <option value="student">Student</option>
-                <option value="faculty">Faculty Member</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label" htmlFor="department">Department</label>
-              <select
-                id="department"
-                className="form-select"
-                value={department}
-                onChange={(e) => setDepartment(e.target.value)}
-              >
-                <option value="Computer Science">Computer Science</option>
-                <option value="Information Technology">Information Technology</option>
-                <option value="Electrical Engineering">Electrical Engineering</option>
-                <option value="Mechanical Engineering">Mechanical Engineering</option>
-              </select>
-            </div>
+          <div className="form-group">
+            <label className="form-label" htmlFor="department">Department</label>
+            <select
+              id="department"
+              className="form-select"
+              value={department}
+              onChange={(e) => setDepartment(e.target.value)}
+            >
+              <option value="Computer Science">Computer Science</option>
+              <option value="Information Technology">Information Technology</option>
+              <option value="Electrical Engineering">Electrical Engineering</option>
+              <option value="Mechanical Engineering">Mechanical Engineering</option>
+            </select>
           </div>
 
           {role === 'student' && (
@@ -181,6 +208,7 @@ export default function RegisterPage() {
             type="submit"
             className="btn btn-primary btn-lg w-full"
             disabled={loading}
+            style={{ marginTop: 'var(--spacing-md)' }}
           >
             {loading ? 'Creating account...' : 'Create Account'}
           </button>
