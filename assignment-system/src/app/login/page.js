@@ -6,17 +6,17 @@ import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 
 function LoginForm() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
   const { login, forgotPassword, resetPassword } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  // Auth Mode
-  const [mode, setMode] = useState('login'); // 'login' | 'forgot' | 'reset'
-
-  // Input states
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [activeTab, setActiveTab] = useState('faculty'); // 'faculty' | 'student'
+  const [email, setEmail] = useState('teacher@assignsys.com');
+  const [password, setPassword] = useState('teacher123');
   const [rememberMe, setRememberMe] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [mode, setMode] = useState('login'); // 'login' | 'forgot' | 'reset'
 
   // Forgot password states
   const [forgotEmail, setForgotEmail] = useState('');
@@ -28,15 +28,19 @@ function LoginForm() {
   const [newPassword, setNewPassword] = useState('');
   const [resetSuccess, setResetSuccess] = useState('');
 
-  // General states
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [expiredMsg, setExpiredMsg] = useState(false);
+  const expiredMsg = searchParams.get('expired');
 
   useEffect(() => {
-    if (searchParams.get('expired') === 'true') {
-      setExpiredMsg(true);
+    if (activeTab === 'faculty') {
+      setEmail('teacher@assignsys.com');
+      setPassword('teacher123');
+    } else {
+      setEmail('student@assignsys.com');
+      setPassword('student123');
     }
+  }, [activeTab]);
+
+  useEffect(() => {
     const token = searchParams.get('token');
     if (token) {
       setResetToken(token);
@@ -45,11 +49,25 @@ function LoginForm() {
   }, [searchParams]);
 
   const handleLogin = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setError('');
     setLoading(true);
 
     const result = await login(email, password, rememberMe);
+    if (result.success) {
+      router.push('/dashboard');
+    } else {
+      setError(result.error);
+    }
+    setLoading(false);
+  };
+
+  const handleQuickLogin = async (role) => {
+    setError('');
+    setLoading(true);
+    const quickEmail = role === 'faculty' ? 'teacher@assignsys.com' : 'student@assignsys.com';
+    const quickPass = 'teacher123'; // Both mock users use teacher123/student123 seeded values
+    const result = await login(quickEmail, quickPass, false);
     if (result.success) {
       router.push('/dashboard');
     } else {
@@ -98,7 +116,7 @@ function LoginForm() {
 
   return (
     <div className="auth-page">
-      <div className="auth-card glass-card">
+      <div className="auth-card glass-card" style={{ maxWidth: '440px', width: '100%' }}>
         <div className="auth-logo">
           <div className="auth-logo-icon" style={{ color: 'white', fontWeight: 'bold' }}>AP</div>
           <span className="auth-logo-text">AssignPro</span>
@@ -114,8 +132,55 @@ function LoginForm() {
 
         {mode === 'login' && (
           <>
-            <h1 className="auth-title">Welcome back</h1>
-            <p className="auth-subtitle">Sign in to your portal to continue</p>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '4px',
+              padding: '4px',
+              background: 'rgba(99, 102, 241, 0.05)',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--border-color)',
+              marginBottom: 'var(--spacing-lg)'
+            }}>
+              <button
+                type="button"
+                className={`btn btn-sm ${activeTab === 'faculty' ? 'btn-primary' : ''}`}
+                style={{
+                  background: activeTab === 'faculty' ? 'var(--gradient-primary)' : 'transparent',
+                  color: activeTab === 'faculty' ? 'white' : 'var(--text-secondary)',
+                  border: 'none',
+                  boxShadow: activeTab === 'faculty' ? 'var(--shadow-sm)' : 'none',
+                  padding: 'var(--spacing-sm)'
+                }}
+                onClick={() => setActiveTab('faculty')}
+              >
+                Faculty Portal
+              </button>
+              <button
+                type="button"
+                className={`btn btn-sm ${activeTab === 'student' ? 'btn-primary' : ''}`}
+                style={{
+                  background: activeTab === 'student' ? 'var(--gradient-primary)' : 'transparent',
+                  color: activeTab === 'student' ? 'white' : 'var(--text-secondary)',
+                  border: 'none',
+                  boxShadow: activeTab === 'student' ? 'var(--shadow-sm)' : 'none',
+                  padding: 'var(--spacing-sm)'
+                }}
+                onClick={() => setActiveTab('student')}
+              >
+                Student Portal
+              </button>
+            </div>
+
+            <h1 className="auth-title">
+              {activeTab === 'faculty' ? 'Faculty Sign In' : 'Student Sign In'}
+            </h1>
+            <p className="auth-subtitle" style={{ fontSize: '0.8125rem', marginBottom: 'var(--spacing-lg)' }}>
+              {activeTab === 'faculty' 
+                ? 'Create assignments, grade student submissions, and view coursework analytics.'
+                : 'Browse courses, download instructions, upload files, and check review marks.'
+              }
+            </p>
 
             <form onSubmit={handleLogin}>
               <div className="form-group">
@@ -124,7 +189,7 @@ function LoginForm() {
                   id="email"
                   type="email"
                   className="form-input"
-                  placeholder="you@university.edu"
+                  placeholder={activeTab === 'faculty' ? 'teacher@assignsys.com' : 'student@assignsys.com'}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -164,21 +229,33 @@ function LoginForm() {
                   onChange={(e) => setRememberMe(e.target.checked)}
                   style={{ width: 'auto', cursor: 'pointer' }}
                 />
-                <label htmlFor="rememberMe" className="text-sm text-muted" style={{ cursor: 'pointer', select: 'none' }}>
+                <label htmlFor="rememberMe" className="text-sm text-muted" style={{ cursor: 'pointer', userSelect: 'none' }}>
                   Remember me on this device
                 </label>
               </div>
 
-              <button
-                type="submit"
-                className="btn btn-primary btn-lg w-full"
-                disabled={loading}
-              >
-                {loading ? 'Signing in...' : 'Sign In'}
-              </button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
+                <button
+                  type="submit"
+                  className="btn btn-primary btn-lg w-full"
+                  disabled={loading}
+                >
+                  {loading ? 'Signing in...' : 'Sign In'}
+                </button>
+
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-lg w-full"
+                  onClick={() => handleQuickLogin(activeTab)}
+                  disabled={loading}
+                  style={{ borderColor: 'var(--accent-primary)', color: 'var(--accent-primary)' }}
+                >
+                  Quick Sign In
+                </button>
+              </div>
             </form>
 
-            <div className="auth-footer">
+            <div className="auth-footer" style={{ marginTop: 'var(--spacing-lg)' }}>
               Don&apos;t have an account?{' '}
               <Link href="/register">Create one</Link>
             </div>
@@ -288,22 +365,6 @@ function LoginForm() {
             </form>
           </>
         )}
-
-        <div style={{
-          marginTop: 'var(--spacing-xl)',
-          padding: 'var(--spacing-md)',
-          borderRadius: 'var(--radius-md)',
-          background: 'var(--bg-glass)',
-          border: '1px solid var(--border-color)',
-        }}>
-          <p className="text-xs text-muted" style={{ marginBottom: '0.5rem', fontWeight: 600 }}>
-            Standard Credentials
-          </p>
-          <div className="text-xs text-muted" style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-            <span>Faculty: teacher@assignsys.com / teacher123</span>
-            <span>Student: student@assignsys.com / student123</span>
-          </div>
-        </div>
       </div>
     </div>
   );
