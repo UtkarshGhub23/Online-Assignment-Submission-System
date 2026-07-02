@@ -11,6 +11,8 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
+        <div className="bg-blob-1"></div>
+        <div className="bg-blob-2"></div>
         <AuthProvider>
           {children}
         </AuthProvider>
