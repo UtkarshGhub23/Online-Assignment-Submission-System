@@ -6,7 +6,7 @@ export async function POST(request, { params }) {
   try {
     const user = await getAuthUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    if (user.role !== 'teacher' && user.role !== 'admin') {
+    if (user.role !== 'faculty') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '@/db';
-import { hashPassword, createToken, setAuthCookie, getAuthUser } from '@/lib/auth';
+import { hashPassword, createToken, setAuthCookie } from '@/lib/auth';
 
 export async function POST(request) {
   try {
@@ -13,6 +13,8 @@ export async function POST(request) {
       );
     }
 
+    const targetRole = role === 'faculty' ? 'faculty' : 'student';
+
     const db = getDb();
 
     // Check if user already exists
@@ -24,21 +26,8 @@ export async function POST(request) {
       );
     }
 
-    // Only admin can create teacher/admin accounts
-    let userRole = 'student';
-    if (role && role !== 'student') {
-      const authUser = await getAuthUser();
-      if (!authUser || authUser.role !== 'admin') {
-        return NextResponse.json(
-          { error: 'Only admins can create teacher or admin accounts' },
-          { status: 403 }
-        );
-      }
-      userRole = role;
-    }
-
     const password_hash = hashPassword(password);
-    const enrollment = userRole === 'student' ? 'STU-' + Math.floor(100000 + Math.random() * 900000) : null;
+    const enrollment = targetRole === 'student' ? 'STU-' + Math.floor(100000 + Math.random() * 900000) : 'FAC-' + Math.floor(1000 + Math.random() * 9000);
 
     const result = db.prepare(
       `INSERT INTO users (
@@ -48,11 +37,11 @@ export async function POST(request) {
       name,
       email,
       password_hash,
-      userRole,
+      targetRole,
       department || 'Computer Science',
-      course || 'B.Sc. CS',
-      semester || 'Semester 1',
-      section || 'Section A',
+      course || (targetRole === 'student' ? 'B.Sc. CS' : 'N/A'),
+      semester || (targetRole === 'student' ? 'Semester 1' : 'N/A'),
+      section || (targetRole === 'student' ? 'Section A' : 'N/A'),
       enrollment
     );
 
@@ -63,17 +52,19 @@ export async function POST(request) {
       'INSERT INTO activity_logs (user_id, action, details) VALUES (?, ?, ?)'
     ).run(user.id, 'USER_REGISTER', `User ${user.name} created account with role ${user.role}.`);
 
-    // Notify administrators of new registration
-    const admins = db.prepare("SELECT id FROM users WHERE role = 'admin'").all();
-    for (const admin of admins) {
-      db.prepare(
-        'INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)'
-      ).run(
-        admin.id,
-        'New User Registration',
-        `A new user registered: ${user.name} (${user.email}) as a ${user.role}.`,
-        'info'
-      );
+    // Notify other faculty of new registration
+    const facultyList = db.prepare("SELECT id FROM users WHERE role = 'faculty'").all();
+    for (const fac of facultyList) {
+      if (fac.id !== user.id) {
+        db.prepare(
+          'INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)'
+        ).run(
+          fac.id,
+          'New Account Registration',
+          `A new user registered: ${user.name} (${user.email}) as a ${user.role}.`,
+          'info'
+        );
+      }
     }
 
     const token = await createToken(user);

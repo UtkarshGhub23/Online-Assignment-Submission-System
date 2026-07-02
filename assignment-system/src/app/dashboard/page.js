@@ -73,160 +73,39 @@ export default function DashboardPage() {
             Here is the status update for your academic portal.
           </p>
         </div>
+        {user?.role === 'faculty' && (
+          <div className="flex gap-sm">
+            <Link href="/dashboard/assignments/new" className="btn btn-primary">
+              + New Assignment
+            </Link>
+            <Link href="/dashboard/courses/new" className="btn btn-secondary">
+              + New Course
+            </Link>
+          </div>
+        )}
       </div>
 
-      {/* Admin Dashboard */}
-      {user?.role === 'admin' && (
+      {/* Faculty Dashboard */}
+      {user?.role === 'faculty' && (
         <>
           <div className="stats-grid">
             <div className="glass-card stat-card purple">
               <div className="stat-icon purple">
                 <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13" />
                 </svg>
               </div>
-              <div className="stat-value">{stats.totalStudents}</div>
-              <div className="stat-label">Total Students</div>
+              <div className="stat-value">{stats.totalAssignments}</div>
+              <div className="stat-label">Total Assignments</div>
             </div>
             <div className="glass-card stat-card cyan">
               <div className="stat-icon cyan">
                 <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <div className="stat-value">{stats.totalTeachers}</div>
-              <div className="stat-label">Total Teachers</div>
-            </div>
-            <div className="glass-card stat-card amber">
-              <div className="stat-icon amber">
-                <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                </svg>
-              </div>
-              <div className="stat-value">{stats.totalActiveAssignments}</div>
+              <div className="stat-value">{stats.activeAssignments}</div>
               <div className="stat-label">Active Assignments</div>
-            </div>
-            <div className="glass-card stat-card green">
-              <div className="stat-icon green">
-                <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                </svg>
-              </div>
-              <div className="stat-value">{stats.totalSubmittedAssignments}</div>
-              <div className="stat-label">Submissions</div>
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 'var(--spacing-lg)' }}>
-            {/* System Statistics */}
-            <div className="glass-card" style={{ padding: 'var(--spacing-lg)' }}>
-              <h3 style={{ marginBottom: 'var(--spacing-lg)' }}>Submission Status</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
-                <div>
-                  <div className="flex justify-between" style={{ marginBottom: '0.25rem' }}>
-                    <span className="text-sm text-secondary">Pending Reviews</span>
-                    <span className="text-sm font-semibold">{stats.pendingSubmissions}</span>
-                  </div>
-                  <div className="progress-bar">
-                    <div className="progress-bar-fill" style={{
-                      width: `${stats.totalSubmittedAssignments > 0 ? (stats.pendingSubmissions / stats.totalSubmittedAssignments) * 100 : 0}%`,
-                      background: 'linear-gradient(135deg, #f59e0b, #eab308)'
-                    }}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between" style={{ marginBottom: '0.25rem' }}>
-                    <span className="text-sm text-secondary">Graded Submissions</span>
-                    <span className="text-sm font-semibold">{stats.gradedSubmissions}</span>
-                  </div>
-                  <div className="progress-bar">
-                    <div className="progress-bar-fill" style={{
-                      width: `${stats.totalSubmittedAssignments > 0 ? (stats.gradedSubmissions / stats.totalSubmittedAssignments) * 100 : 0}%`,
-                      background: 'linear-gradient(135deg, #10b981, #06b6d4)'
-                    }}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between" style={{ marginBottom: '0.25rem' }}>
-                    <span className="text-sm text-secondary">Late Submissions</span>
-                    <span className="text-sm font-semibold">{stats.lateSubmissions}</span>
-                  </div>
-                  <div className="progress-bar">
-                    <div className="progress-bar-fill" style={{
-                      width: `${stats.totalSubmittedAssignments > 0 ? (stats.lateSubmissions / stats.totalSubmittedAssignments) * 100 : 0}%`,
-                      background: 'linear-gradient(135deg, #ef4444, #dc2626)'
-                    }}></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Recent Activities */}
-            <div className="glass-card" style={{ padding: 'var(--spacing-lg)' }}>
-              <h3 style={{ marginBottom: 'var(--spacing-lg)' }}>Recent System Activities</h3>
-              {stats.recentActivities?.length > 0 ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {stats.recentActivities.map((act) => (
-                    <div key={act.id} style={{ display: 'flex', justifyContent: 'between', alignItems: 'center', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border-color)' }}>
-                      <div style={{ flex: 1 }}>
-                        <span className="text-xs font-semibold" style={{ color: 'var(--accent-primary)' }}>{act.action}</span>
-                        <p className="text-xs text-secondary" style={{ marginTop: '0.1rem' }}>{act.details}</p>
-                      </div>
-                      <span className="text-xs text-muted" style={{ minWidth: '70px', textAlign: 'right' }}>
-                        {formatDate(act.created_at).full.split(',')[0]}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-xs text-muted">No recent logs recorded.</p>
-              )}
-            </div>
-
-            {/* Recently Registered Users */}
-            <div className="glass-card" style={{ padding: 'var(--spacing-lg)' }}>
-              <div className="flex justify-between items-center" style={{ marginBottom: 'var(--spacing-lg)' }}>
-                <h3>Recently Registered Users</h3>
-                <Link href="/dashboard/admin/users" className="btn btn-sm btn-secondary">Manage</Link>
-              </div>
-              {stats.recentUsers?.map((u) => (
-                <div key={u.id} className="flex items-center gap-md" style={{ padding: '0.5rem 0', borderBottom: '1px solid var(--border-color)' }}>
-                  <div className="sidebar-avatar" style={{ width: 32, height: 32, fontSize: '0.75rem' }}>
-                    {u.name?.charAt(0)}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div className="text-sm font-semibold">{u.name}</div>
-                    <div className="text-xs text-secondary">{u.email}</div>
-                  </div>
-                  <span className={`badge badge-${u.role}`}>{u.role}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Teacher Dashboard */}
-      {user?.role === 'teacher' && (
-        <>
-          <div className="stats-grid">
-            <div className="glass-card stat-card purple">
-              <div className="stat-icon purple">
-                <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253" />
-                </svg>
-              </div>
-              <div className="stat-value">{stats.totalCourses}</div>
-              <div className="stat-label">Active Courses</div>
-            </div>
-            <div className="glass-card stat-card cyan">
-              <div className="stat-icon cyan">
-                <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1z" />
-                </svg>
-              </div>
-              <div className="stat-value">{stats.totalStudents}</div>
-              <div className="stat-label">Total Enrollees</div>
             </div>
             <div className="glass-card stat-card amber">
               <div className="stat-icon amber">
@@ -240,25 +119,30 @@ export default function DashboardPage() {
             <div className="glass-card stat-card green">
               <div className="stat-icon green">
                 <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                 </svg>
               </div>
-              <div className="stat-value">{stats.gradedSubmissions}</div>
-              <div className="stat-label">Reviewed</div>
+              <div className="stat-value">{stats.totalSubmissions}</div>
+              <div className="stat-label">Total Submissions</div>
             </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 'var(--spacing-lg)' }}>
+            {/* Overview Stats */}
             <div className="glass-card" style={{ padding: 'var(--spacing-lg)' }}>
-              <h3 style={{ marginBottom: 'var(--spacing-lg)' }}>Performance Overview</h3>
+              <h3 style={{ marginBottom: 'var(--spacing-lg)' }}>Coursework Status Summary</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
                 <div className="flex justify-between items-center" style={{ padding: '0.5rem 0' }}>
-                  <span className="text-sm text-secondary">Assignments Created</span>
-                  <span className="font-bold">{stats.totalAssignments}</span>
+                  <span className="text-sm text-secondary">Expired Assignments</span>
+                  <span className="font-bold">{stats.expiredAssignments}</span>
                 </div>
                 <div className="flex justify-between items-center" style={{ padding: '0.5rem 0' }}>
-                  <span className="text-sm text-secondary">Total Submissions Received</span>
-                  <span className="font-bold">{stats.totalSubmissions}</span>
+                  <span className="text-sm text-secondary">Reviewed Submissions</span>
+                  <span className="font-bold">{stats.gradedSubmissions}</span>
+                </div>
+                <div className="flex justify-between items-center" style={{ padding: '0.5rem 0' }}>
+                  <span className="text-sm text-secondary">Late Submissions</span>
+                  <span className="font-bold">{stats.lateSubmissions}</span>
                 </div>
                 <div className="flex justify-between items-center" style={{ padding: '0.5rem 0' }}>
                   <span className="text-sm text-secondary">Average Score</span>
@@ -267,6 +151,32 @@ export default function DashboardPage() {
               </div>
             </div>
 
+            {/* Upcoming Deadlines */}
+            <div className="glass-card" style={{ padding: 'var(--spacing-lg)' }}>
+              <h3 style={{ marginBottom: 'var(--spacing-lg)' }}>Upcoming Deadlines</h3>
+              {stats.upcomingDeadlines?.length > 0 ? stats.upcomingDeadlines.map((a) => {
+                const d = formatDate(a.due_date);
+                return (
+                  <Link key={a.id} href={`/dashboard/assignments/${a.id}`} style={{ textDecoration: 'none' }}>
+                    <div className="deadline-item">
+                      <div className="deadline-date">
+                        <div className="deadline-date-day">{d.day}</div>
+                        <div className="deadline-date-month">{d.month}</div>
+                      </div>
+                      <div className="deadline-info">
+                        <div className="deadline-title">{a.title}</div>
+                        <div className="deadline-course">{a.course_code} — {a.course_title}</div>
+                      </div>
+                      <span className="text-xs text-muted">{getDaysLeft(a.due_date)}</span>
+                    </div>
+                  </Link>
+                );
+              }) : (
+                <p className="text-sm text-secondary">No upcoming deadlines.</p>
+              )}
+            </div>
+
+            {/* Recent Submissions */}
             <div className="glass-card" style={{ padding: 'var(--spacing-lg)' }}>
               <div className="flex justify-between items-center" style={{ marginBottom: 'var(--spacing-lg)' }}>
                 <h3>Recent Submissions</h3>
@@ -282,11 +192,13 @@ export default function DashboardPage() {
                       <div className="deadline-title">{s.student_name}</div>
                       <div className="deadline-course">{s.assignment_title}</div>
                     </div>
-                    <span className={`badge badge-${s.status}`}>{s.status.replace('_', ' ')}</span>
+                    <span className={`badge badge-${s.status === 'graded' || s.status === 'approved' ? 'graded' : 'pending'}`}>
+                      {s.status.replace('_', ' ')}
+                    </span>
                   </div>
                 </Link>
               )) : (
-                <p className="text-sm text-secondary">No submissions yet</p>
+                <p className="text-sm text-secondary">No submissions yet.</p>
               )}
             </div>
           </div>
@@ -303,15 +215,6 @@ export default function DashboardPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13" />
                 </svg>
               </div>
-              <div className="stat-value">{stats.enrolledCourses}</div>
-              <div className="stat-label">Enrolled Courses</div>
-            </div>
-            <div className="glass-card stat-card amber">
-              <div className="stat-icon amber">
-                <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
               <div className="stat-value">{stats.pendingCount}</div>
               <div className="stat-label">Pending Assignments</div>
             </div>
@@ -322,12 +225,21 @@ export default function DashboardPage() {
                 </svg>
               </div>
               <div className="stat-value">{stats.submittedCount}</div>
-              <div className="stat-label">Submitted Assignments</div>
+              <div className="stat-label">Completed Assignments</div>
+            </div>
+            <div className="glass-card stat-card amber">
+              <div className="stat-icon amber">
+                <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="stat-value">{stats.lateCount}</div>
+              <div className="stat-label">Late Submissions</div>
             </div>
             <div className="glass-card stat-card cyan">
               <div className="stat-icon cyan">
                 <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10" />
                 </svg>
               </div>
               <div className="stat-value">{stats.averageMarks ? Math.round(stats.averageMarks) : 'N/A'}</div>
@@ -364,6 +276,38 @@ export default function DashboardPage() {
                   <div className="empty-state-title">All caught up!</div>
                   <div className="empty-state-text">No upcoming deadlines.</div>
                 </div>
+              )}
+            </div>
+
+            {/* Submission History */}
+            <div className="glass-card" style={{ padding: 'var(--spacing-lg)' }}>
+              <div className="flex justify-between items-center" style={{ marginBottom: 'var(--spacing-lg)' }}>
+                <h3>Submission History</h3>
+                <Link href="/dashboard/submissions" className="btn btn-sm btn-secondary">View all</Link>
+              </div>
+              {stats.submissionHistory?.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
+                  {stats.submissionHistory.map((sub) => (
+                    <div key={sub.id} className="deadline-item" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: 'var(--spacing-sm)' }}>
+                      <div style={{ flex: 1 }}>
+                        <strong className="text-sm" style={{ color: 'var(--text-primary)' }}>{sub.assignment_title}</strong>
+                        <p className="text-xs text-secondary">Submitted: {formatDate(sub.submitted_at).full}</p>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <span className={`badge badge-${sub.status === 'graded' || sub.status === 'approved' ? 'graded' : 'pending'}`} style={{ fontSize: '0.675rem' }}>
+                          {sub.status.replace('_', ' ').toUpperCase()}
+                        </span>
+                        {sub.marks !== null && (
+                          <p className="text-xs font-bold" style={{ color: 'var(--accent-success)', marginTop: '0.2rem' }}>
+                            {sub.marks}/{sub.max_marks}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-secondary">No submission history records.</p>
               )}
             </div>
 

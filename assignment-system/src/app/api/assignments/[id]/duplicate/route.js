@@ -6,7 +6,7 @@ export async function POST(request, { params }) {
   try {
     const user = await getAuthUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    if (user.role !== 'teacher' && user.role !== 'admin') {
+    if (user.role !== 'faculty') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -21,7 +21,7 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: 'Assignment not found' }, { status: 404 });
     }
 
-    if (user.role !== 'admin' && assignment.teacher_id !== user.id) {
+    if (assignment.teacher_id !== user.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

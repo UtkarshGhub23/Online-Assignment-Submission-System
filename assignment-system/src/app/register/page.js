@@ -9,6 +9,7 @@ export default function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState('student'); // 'student' | 'faculty'
   const [department, setDepartment] = useState('Computer Science');
   const [course, setCourse] = useState('B.Sc. CS');
   const [semester, setSemester] = useState('Semester 1');
@@ -24,10 +25,11 @@ export default function RegisterPage() {
     setLoading(true);
 
     const result = await register(name, email, password, {
+      role,
       department,
-      course,
-      semester,
-      section
+      course: role === 'student' ? course : 'N/A',
+      semester: role === 'student' ? semester : 'N/A',
+      section: role === 'student' ? section : 'N/A'
     });
 
     if (result.success) {
@@ -46,7 +48,7 @@ export default function RegisterPage() {
           <span className="auth-logo-text">AssignPro</span>
         </div>
 
-        <h1 className="auth-title">Create student account</h1>
+        <h1 className="auth-title">Create Account</h1>
         <p className="auth-subtitle">Join the university assignment portal</p>
 
         {error && <div className="auth-error">{error}</div>}
@@ -97,6 +99,19 @@ export default function RegisterPage() {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-sm)' }}>
             <div className="form-group">
+              <label className="form-label" htmlFor="role">Register As</label>
+              <select
+                id="role"
+                className="form-select"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+              >
+                <option value="student">Student</option>
+                <option value="faculty">Faculty Member</option>
+              </select>
+            </div>
+
+            <div className="form-group">
               <label className="form-label" htmlFor="department">Department</label>
               <select
                 id="department"
@@ -110,53 +125,57 @@ export default function RegisterPage() {
                 <option value="Mechanical Engineering">Mechanical Engineering</option>
               </select>
             </div>
-
-            <div className="form-group">
-              <label className="form-label" htmlFor="course">Course</label>
-              <select
-                id="course"
-                className="form-select"
-                value={course}
-                onChange={(e) => setCourse(e.target.value)}
-              >
-                <option value="B.Sc. CS">B.Sc. CS</option>
-                <option value="M.Sc. IT">M.Sc. IT</option>
-                <option value="B.Tech SE">B.Tech SE</option>
-                <option value="MCA">MCA</option>
-              </select>
-            </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-sm)' }}>
-            <div className="form-group">
-              <label className="form-label" htmlFor="semester">Semester</label>
-              <select
-                id="semester"
-                className="form-select"
-                value={semester}
-                onChange={(e) => setSemester(e.target.value)}
-              >
-                <option value="Semester 1">Semester 1</option>
-                <option value="Semester 2">Semester 2</option>
-                <option value="Semester 3">Semester 3</option>
-                <option value="Semester 4">Semester 4</option>
-              </select>
-            </div>
+          {role === 'student' && (
+            <>
+              <div className="form-group">
+                <label className="form-label" htmlFor="course">Course</label>
+                <select
+                  id="course"
+                  className="form-select"
+                  value={course}
+                  onChange={(e) => setCourse(e.target.value)}
+                >
+                  <option value="B.Sc. CS">B.Sc. CS</option>
+                  <option value="M.Sc. IT">M.Sc. IT</option>
+                  <option value="B.Tech SE">B.Tech SE</option>
+                  <option value="MCA">MCA</option>
+                </select>
+              </div>
 
-            <div className="form-group">
-              <label className="form-label" htmlFor="section">Section</label>
-              <select
-                id="section"
-                className="form-select"
-                value={section}
-                onChange={(e) => setSection(e.target.value)}
-              >
-                <option value="Section A">Section A</option>
-                <option value="Section B">Section B</option>
-                <option value="Section C">Section C</option>
-              </select>
-            </div>
-          </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-sm)' }}>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="semester">Semester</label>
+                  <select
+                    id="semester"
+                    className="form-select"
+                    value={semester}
+                    onChange={(e) => setSemester(e.target.value)}
+                  >
+                    <option value="Semester 1">Semester 1</option>
+                    <option value="Semester 2">Semester 2</option>
+                    <option value="Semester 3">Semester 3</option>
+                    <option value="Semester 4">Semester 4</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" htmlFor="section">Section</label>
+                  <select
+                    id="section"
+                    className="form-select"
+                    value={section}
+                    onChange={(e) => setSection(e.target.value)}
+                  >
+                    <option value="Section A">Section A</option>
+                    <option value="Section B">Section B</option>
+                    <option value="Section C">Section C</option>
+                  </select>
+                </div>
+              </div>
+            </>
+          )}
 
           <button
             type="submit"

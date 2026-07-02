@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS users (
   name TEXT NOT NULL,
   email TEXT UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
-  role TEXT NOT NULL CHECK(role IN ('admin', 'teacher', 'student')),
+  role TEXT NOT NULL CHECK(role IN ('faculty', 'student')),
   avatar_url TEXT DEFAULT NULL,
   phone TEXT DEFAULT NULL,
   address TEXT DEFAULT NULL,

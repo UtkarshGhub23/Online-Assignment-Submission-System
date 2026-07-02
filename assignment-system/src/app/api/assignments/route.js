@@ -25,7 +25,7 @@ export async function GET(request) {
     }
 
     // Role-based scoping
-    if (user.role === 'teacher') {
+    if (user.role === 'faculty') {
       queryConditions.push('c.teacher_id = ?');
       queryParams.push(user.id);
     } else if (user.role === 'student') {
@@ -102,7 +102,7 @@ export async function POST(request) {
   try {
     const user = await getAuthUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    if (user.role !== 'teacher' && user.role !== 'admin') {
+    if (user.role !== 'faculty') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -126,7 +126,7 @@ export async function POST(request) {
     // Check course ownership
     const course = db.prepare('SELECT * FROM courses WHERE id = ?').get(course_id);
     if (!course) return NextResponse.json({ error: 'Course not found' }, { status: 404 });
-    if (user.role === 'teacher' && course.teacher_id !== user.id) {
+    if (course.teacher_id !== user.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

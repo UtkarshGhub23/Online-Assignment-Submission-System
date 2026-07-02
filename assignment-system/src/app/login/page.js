@@ -300,8 +300,7 @@ function LoginForm() {
             Standard Credentials
           </p>
           <div className="text-xs text-muted" style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-            <span>Admin: admin@assignsys.com / admin123</span>
-            <span>Teacher: teacher@assignsys.com / teacher123</span>
+            <span>Faculty: teacher@assignsys.com / teacher123</span>
             <span>Student: student@assignsys.com / student123</span>
           </div>
         </div>

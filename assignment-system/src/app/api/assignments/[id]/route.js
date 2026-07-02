@@ -27,7 +27,7 @@ export async function GET(request, { params }) {
     let mySubmission = null;
     let submissionHistory = [];
 
-    if (user.role === 'teacher' || user.role === 'admin') {
+    if (user.role === 'faculty') {
       submissions = db.prepare(`
         SELECT s.*, u.name as student_name, u.email as student_email, u.enrollment_number,
           g.marks, g.feedback, g.graded_at, g.is_draft
@@ -97,7 +97,7 @@ export async function PUT(request, { params }) {
     `).get(id);
 
     if (!assignment) return NextResponse.json({ error: 'Assignment not found' }, { status: 404 });
-    if (user.role !== 'admin' && assignment.teacher_id !== user.id) {
+    if (user.role !== 'faculty' || assignment.teacher_id !== user.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -183,7 +183,7 @@ export async function DELETE(request, { params }) {
     `).get(id);
 
     if (!assignment) return NextResponse.json({ error: 'Assignment not found' }, { status: 404 });
-    if (user.role !== 'admin' && assignment.teacher_id !== user.id) {
+    if (user.role !== 'faculty' || assignment.teacher_id !== user.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

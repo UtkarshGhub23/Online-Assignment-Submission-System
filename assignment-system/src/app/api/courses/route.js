@@ -12,16 +12,7 @@ export async function GET(request) {
     const db = getDb();
     let courses;
 
-    if (user.role === 'admin') {
-      courses = db.prepare(`
-        SELECT c.*, u.name as teacher_name,
-          (SELECT COUNT(*) FROM course_enrollments WHERE course_id = c.id) as student_count,
-          (SELECT COUNT(*) FROM assignments WHERE course_id = c.id) as assignment_count
-        FROM courses c
-        JOIN users u ON c.teacher_id = u.id
-        ORDER BY c.created_at DESC
-      `).all();
-    } else if (user.role === 'teacher') {
+    if (user.role === 'faculty') {
       courses = db.prepare(`
         SELECT c.*, u.name as teacher_name,
           (SELECT COUNT(*) FROM course_enrollments WHERE course_id = c.id) as student_count,
@@ -38,9 +29,8 @@ export async function GET(request) {
           (SELECT COUNT(*) FROM assignments WHERE course_id = c.id) as assignment_count
         FROM courses c
         JOIN users u ON c.teacher_id = u.id
-        LEFT JOIN course_enrollments ce ON c.id = ce.course_id AND ce.student_id = ?
         ORDER BY c.created_at DESC
-      `).all(user.id);
+      `).all();
 
       // Mark enrolled courses
       const enrolledIds = db.prepare(
@@ -64,7 +54,7 @@ export async function POST(request) {
   try {
     const user = await getAuthUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    if (user.role !== 'teacher' && user.role !== 'admin') {
+    if (user.role !== 'faculty') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
