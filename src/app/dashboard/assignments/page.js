@@ -66,7 +66,7 @@ export default function AssignmentsPage() {
               : 'Review submissions, duplicate, and publish coursework assignments'}
           </p>
         </div>
-        {(user?.role === 'teacher' || user?.role === 'admin') && (
+        {(user?.role === 'faculty' || user?.role === 'admin') && (
           <Link href="/dashboard/assignments/new" className="btn btn-primary">+ New Assignment</Link>
         )}
       </div>
@@ -132,8 +132,8 @@ export default function AssignmentsPage() {
       ) : assignments.length === 0 ? (
         <div className="glass-card">
           <div className="empty-state">
-            <div className="empty-state-title">No assignments found</div>
-            <div className="empty-state-text">Refine your search parameters or check your course enrollment settings.</div>
+            <div className="empty-state-title">No assignments available</div>
+            <div className="empty-state-text">There are no assignments currently published for your section, semester, and course.</div>
           </div>
         </div>
       ) : (

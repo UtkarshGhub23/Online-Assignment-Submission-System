@@ -82,7 +82,7 @@ export default function CoursesPage() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          {(user?.role === 'teacher' || user?.role === 'admin') && (
+          {(user?.role === 'faculty' || user?.role === 'admin') && (
             <Link href="/dashboard/courses/new" className="btn btn-primary">
               + New Course
             </Link>
@@ -95,7 +95,7 @@ export default function CoursesPage() {
           <div className="empty-state">
             <div className="empty-state-title">No courses found</div>
             <div className="empty-state-text">
-              {user?.role === 'teacher'
+              {user?.role === 'faculty'
                 ? 'Create a course to begin publishing assignments.'
                 : 'No academic courses are currently offered.'}
             </div>

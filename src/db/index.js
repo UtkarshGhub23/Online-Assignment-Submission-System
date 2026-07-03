@@ -128,54 +128,12 @@ function seedDatabase(database) {
     insertEnrollment.run(1, 3); // Jamie in CS101
     insertEnrollment.run(3, 3); // Jamie in DB301
 
-    // 5. Assignments
-    const futureDate1 = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-    const futureDate2 = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
-    const futureDate3 = new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString();
-    const pastDate = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
+    // 5. Notifications
+    insertNotification.run(2, 'Welcome', 'Welcome to AssignPro. Browse your courses and profile.', 'info', '/dashboard/student');
+    insertNotification.run(3, 'Welcome', 'Welcome to AssignPro. Browse your courses and profile.', 'info', '/dashboard/student');
 
-    // Assignment 1
-    insertAssignment.run(
-      1, 'Python Programming Lab 1', 'Python Basics', 'Computer Science', 'Semester 3', 'Section A', 'ASM-101',
-      'Complete programming exercises covering loops, conditional branches, and basic data collections.',
-      '1. Write pure Python code.\n2. Submit a single PDF file with code screenshots and output blocks.\n3. Make sure to comment your functions.',
-      null, null, futureDate1, 100, 1, 'published', 'medium', '4 hours', 1, 10, 'pdf,zip'
-    );
-
-    // Assignment 2
-    insertAssignment.run(
-      1, 'Linked Lists and Stacks Implementations', 'Data Structures', 'Computer Science', 'Semester 3', 'Section A', 'ASM-102',
-      'Implement singly linked list insertion and deletion along with stack operations.',
-      '1. Implement operations without standard list methods.\n2. Add test functions.\n3. Submit a ZIP containing py files.',
-      null, null, futureDate2, 150, 1, 'published', 'high', '6 hours', 0, 15, 'zip'
-    );
-
-    // Assignment 3
-    insertAssignment.run(
-      2, 'Portfolio Site Stylesheet', 'HTML/CSS Layouts', 'Computer Science', 'Semester 3', 'Section A', 'ASM-201',
-      'Design a personal portfolio mockup using CSS flexbox, grids, and responsive media blocks.',
-      '1. Do not use external CSS frameworks.\n2. Design should support desktop and mobile viewport ratios.\n3. Submit zipped html and css source files.',
-      null, null, futureDate3, 200, 1, 'published', 'medium', '8 hours', 1, 20, 'zip,rar'
-    );
-
-    // Assignment 4 (Past Assignment)
-    insertAssignment.run(
-      2, 'Grid Mockup Challenge', 'Web Layouts', 'Computer Science', 'Semester 3', 'Section A', 'ASM-202',
-      'Recreate the classroom layout grid structure with grid-template areas.',
-      '1. Recreate layouts from mockups.\n2. Clean CSS styling.',
-      null, null, pastDate, 50, 1, 'published', 'low', '2 hours', 0, 5, 'pdf,png'
-    );
-
-    // 6. Notifications
-    insertNotification.run(2, 'Welcome', 'Welcome to AssignPro. Browse your courses and profile.', 'info', '/dashboard');
-    insertNotification.run(2, 'New Assignment', 'Python Programming Lab 1 has been posted in CS101.', 'assignment', '/dashboard/assignments/1');
-    insertNotification.run(3, 'Welcome', 'Welcome to AssignPro. Browse your courses and profile.', 'info', '/dashboard');
-    insertNotification.run(1, 'Course Enrollee', 'Alex Thompson has enrolled in Introduction to Computer Science.', 'enrollment', '/dashboard/courses/1');
-
-    // 7. Activity Logs
-    insertActivity.run(null, 'SYSTEM_STARTUP', 'System settings configured and seeded successfully with 2-role layout.');
-    insertActivity.run(1, 'COURSE_CREATED', 'Dr. Sarah Johnson created WEB201 course.');
-    insertActivity.run(2, 'USER_LOGIN', 'Alex Thompson logged in from Chrome browser.');
+    // 6. Activity Logs
+    insertActivity.run(null, 'SYSTEM_STARTUP', 'System settings configured and seeded successfully.');
   });
 
   seed();

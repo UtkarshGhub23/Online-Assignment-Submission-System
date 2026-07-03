@@ -30,12 +30,13 @@ export default function StudentDashboardPage() {
   };
 
   const formatDate = (dateStr) => {
+    if (!dateStr) return '—';
     const date = new Date(dateStr);
-    return {
-      day: date.getDate(),
-      month: date.toLocaleString('en', { month: 'short' }),
-      full: date.toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' }),
-    };
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
   };
 
   const getDaysLeft = (dateStr) => {
@@ -62,7 +63,7 @@ export default function StudentDashboardPage() {
       <div className="glass-card text-center" style={{ padding: 'var(--spacing-2xl)', marginTop: 'var(--spacing-2xl)' }}>
         <h2 style={{ color: 'var(--accent-danger)', marginBottom: 'var(--spacing-md)' }}>Access Denied</h2>
         <p className="text-secondary" style={{ marginBottom: 'var(--spacing-lg)' }}>
-          This page is reserved for Students only. As a Faculty member, you must use the Faculty Dashboard.
+          This page is reserved for Students only.
         </p>
         <Link href="/dashboard/faculty" className="btn btn-primary">
           Go to Faculty Dashboard
@@ -71,150 +72,160 @@ export default function StudentDashboardPage() {
     );
   }
 
-  if (!stats) {
-    return (
-      <div className="empty-state">
-        <div className="empty-state-title">No data available</div>
-        <div className="empty-state-text">Dashboard analytics will appear once there is activity.</div>
-      </div>
-    );
-  }
+  // Find next urgent assignment
+  const nextUrgent = stats?.upcomingDeadlines && stats.upcomingDeadlines.length > 0
+    ? stats.upcomingDeadlines[0]
+    : null;
 
   return (
-    <div className="animate-slideUp">
-      <div className="page-header">
-        <div>
-          <h1>Student Dashboard</h1>
-          <p className="page-header-subtitle">
-            Welcome back, {user?.name}. Browse your courses and submit your assignments before the deadline.
-          </p>
+    <div className="animate-slideUp" style={{ maxWidth: '1000px', margin: '0 auto' }}>
+      
+      {/* Banner / Guide */}
+      <div className="glass-card" style={{ padding: 'var(--spacing-xl)', marginBottom: 'var(--spacing-lg)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 'var(--spacing-md)' }}>
+          <div>
+            <h1 style={{ fontSize: '1.75rem', fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--text-primary)' }}>
+              Welcome back, {user?.name.split(' ')[0]}
+            </h1>
+            <p className="text-sm text-secondary" style={{ marginTop: '2px' }}>
+              Student ID: {user?.enrollment_number} | CS Section A
+            </p>
+          </div>
+          <span className="badge badge-student" style={{ fontSize: '0.75rem', fontWeight: 600 }}>Active Student</span>
+        </div>
+
+        {nextUrgent ? (
+          <div style={{ marginTop: 'var(--spacing-md)', padding: 'var(--spacing-md)', background: 'var(--bg-glass)', borderRadius: 'var(--radius-md)', borderLeft: '3px solid var(--accent-tertiary)', display: 'flex', justifyItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--spacing-md)' }}>
+            <div>
+              <span className="text-xs text-muted" style={{ fontWeight: 600 }}>NEXT ACTION REQUIRED</span>
+              <p className="text-sm font-semibold" style={{ marginTop: '2px' }}>
+                Submit &ldquo;{nextUrgent.title}&rdquo; ({nextUrgent.course_code}) before the deadline.
+              </p>
+            </div>
+            <Link href={`/dashboard/assignments/${nextUrgent.id}`} className="btn btn-sm btn-primary" style={{ alignSelf: 'center' }}>
+              Submit Now
+            </Link>
+          </div>
+        ) : (
+          <div style={{ marginTop: 'var(--spacing-md)', padding: 'var(--spacing-md)', background: 'var(--bg-glass)', borderRadius: 'var(--radius-md)', borderLeft: '3px solid var(--accent-success)' }}>
+            <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+              ✨ All Caught Up! You have no upcoming coursework deadlines left.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Mini Stats Row */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-xl)' }}>
+        <div className="glass-card stat-card" style={{ padding: 'var(--spacing-md) var(--spacing-lg)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span className="stat-label">Pending</span>
+            <span className="stat-value" style={{ fontSize: '1.5rem', color: 'var(--accent-tertiary)' }}>{stats?.pendingCount || 0}</span>
+          </div>
+        </div>
+        <div className="glass-card stat-card" style={{ padding: 'var(--spacing-md) var(--spacing-lg)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span className="stat-label">Completed</span>
+            <span className="stat-value" style={{ fontSize: '1.5rem', color: 'var(--accent-success)' }}>{stats?.submittedCount || 0}</span>
+          </div>
+        </div>
+        <div className="glass-card stat-card" style={{ padding: 'var(--spacing-md) var(--spacing-lg)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span className="stat-label">Late Submissions</span>
+            <span className="stat-value" style={{ fontSize: '1.5rem', color: 'var(--accent-danger)' }}>{stats?.lateCount || 0}</span>
+          </div>
+        </div>
+        <div className="glass-card stat-card" style={{ padding: 'var(--spacing-md) var(--spacing-lg)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span className="stat-label">Avg Grade</span>
+            <span className="stat-value" style={{ fontSize: '1.5rem', color: 'var(--accent-info)' }}>
+              {stats?.averageMarks ? `${Math.round(stats.averageMarks)}%` : 'N/A'}
+            </span>
+          </div>
         </div>
       </div>
 
-      <div className="stats-grid">
-        <div className="glass-card stat-card purple">
-          <div className="stat-icon purple">
-            <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13" />
-            </svg>
-          </div>
-          <div className="stat-value">{stats.pendingCount}</div>
-          <div className="stat-label">Pending Assignments</div>
-        </div>
-        <div className="glass-card stat-card green">
-          <div className="stat-icon green">
-            <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <div className="stat-value">{stats.submittedCount}</div>
-          <div className="stat-label">Completed Assignments</div>
-        </div>
-        <div className="glass-card stat-card amber">
-          <div className="stat-icon amber">
-            <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <div className="stat-value">{stats.lateCount}</div>
-          <div className="stat-label">Late Submissions</div>
-        </div>
-        <div className="glass-card stat-card cyan">
-          <div className="stat-icon cyan">
-            <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10" />
-            </svg>
-          </div>
-          <div className="stat-value">{stats.averageMarks ? Math.round(stats.averageMarks) : 'N/A'}</div>
-          <div className="stat-label">Average Marks</div>
-        </div>
-      </div>
+      {/* Unified Timeline / Activity Feed */}
+      <h2 style={{ fontSize: '1.25rem', fontWeight: 700, letterSpacing: '-0.02em', marginBottom: 'var(--spacing-md)' }}>
+        Coursework Activity & Timeline
+      </h2>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 'var(--spacing-lg)' }}>
-        {/* Upcoming Deadlines */}
-        <div className="glass-card" style={{ padding: 'var(--spacing-lg)' }}>
-          <div className="flex justify-between items-center" style={{ marginBottom: 'var(--spacing-lg)' }}>
-            <h3>Upcoming Deadlines</h3>
-            <Link href="/dashboard/assignments" className="btn btn-sm btn-secondary">View all</Link>
+      {(!stats?.upcomingDeadlines || stats.upcomingDeadlines.length === 0) && (!stats?.submissionHistory || stats.submissionHistory.length === 0) ? (
+        <div className="glass-card" style={{ padding: 'var(--spacing-2xl)' }}>
+          <div className="empty-state">
+            <span style={{ fontSize: '2.5rem' }}>📂</span>
+            <div className="empty-state-title" style={{ marginTop: 'var(--spacing-sm)' }}>No Assignments Yet</div>
+            <div className="empty-state-text">Your faculty has not published any coursework assignments for your class.</div>
           </div>
-          {stats.upcomingDeadlines?.length > 0 ? stats.upcomingDeadlines.map((a) => {
-            const d = formatDate(a.due_date);
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
+          
+          {/* 1. Pending / Upcoming Deadlines first */}
+          {stats?.upcomingDeadlines?.map((a) => {
+            const isSubmitted = stats?.submissionHistory?.some(s => s.assignment_id === a.id);
+            if (isSubmitted) return null; // Only show actually pending ones
+
             return (
-              <Link key={a.id} href={`/dashboard/assignments/${a.id}`} style={{ textDecoration: 'none' }}>
-                <div className="deadline-item">
-                  <div className="deadline-date">
-                    <div className="deadline-date-day">{d.day}</div>
-                    <div className="deadline-date-month">{d.month}</div>
+              <div key={`pending-${a.id}`} className="glass-card" style={{ padding: 'var(--spacing-md) var(--spacing-lg)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--spacing-md)', borderLeft: '4px solid var(--accent-tertiary)' }}>
+                <div style={{ display: 'flex', gap: 'var(--spacing-md)', alignItems: 'center' }}>
+                  <div className="deadline-date" style={{ background: 'rgba(217, 119, 6, 0.08)', color: 'var(--accent-tertiary)', borderRadius: 'var(--radius-md)', padding: '0.4rem 0.6rem', textAlign: 'center', minWidth: '55px' }}>
+                    <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>{new Date(a.due_date).getDate()}</div>
+                    <div style={{ fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase' }}>
+                      {new Date(a.due_date).toLocaleString('en', { month: 'short' })}
+                    </div>
                   </div>
-                  <div className="deadline-info">
-                    <div className="deadline-title">{a.title}</div>
-                    <div className="deadline-course">{a.course_code} — {a.course_title}</div>
+                  <div>
+                    <span className="text-xs text-muted" style={{ fontWeight: 600, textTransform: 'uppercase' }}>ASSIGNMENT DUE ({getDaysLeft(a.due_date)})</span>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>{a.title}</h3>
+                    <p className="text-xs text-secondary">{a.course_code} — {a.course_title}</p>
                   </div>
-                  <span className="text-xs text-muted">{getDaysLeft(a.due_date)}</span>
                 </div>
-              </Link>
+                <div className="flex gap-sm items-center">
+                  <Link href={`/dashboard/assignments/${a.id}`} className="btn btn-sm btn-primary">
+                    Submit Assignment
+                  </Link>
+                </div>
+              </div>
             );
-          }) : (
-            <div className="empty-state">
-              <div className="empty-state-title">All caught up!</div>
-              <div className="empty-state-text">No upcoming deadlines.</div>
-            </div>
-          )}
-        </div>
+          })}
 
-        {/* Submission History */}
-        <div className="glass-card" style={{ padding: 'var(--spacing-lg)' }}>
-          <div className="flex justify-between items-center" style={{ marginBottom: 'var(--spacing-lg)' }}>
-            <h3>Submission History</h3>
-            <Link href="/dashboard/submissions" className="btn btn-sm btn-secondary">View all</Link>
-          </div>
-          {stats.submissionHistory?.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
-              {stats.submissionHistory.map((sub) => (
-                <div key={sub.id} className="deadline-item" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: 'var(--spacing-sm)' }}>
-                  <div style={{ flex: 1 }}>
-                    <strong className="text-sm" style={{ color: 'var(--text-primary)' }}>{sub.assignment_title}</strong>
-                    <p className="text-xs text-secondary">Submitted: {formatDate(sub.submitted_at).full}</p>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <span className={`badge badge-${sub.status === 'graded' || sub.status === 'approved' ? 'graded' : 'pending'}`} style={{ fontSize: '0.675rem' }}>
-                      {sub.status.replace('_', ' ').toUpperCase()}
-                    </span>
-                    {sub.marks !== null && (
-                      <p className="text-xs font-bold" style={{ color: 'var(--accent-success)', marginTop: '0.2rem' }}>
-                        {sub.marks}/{sub.max_marks}
-                      </p>
-                    )}
-                  </div>
+          {/* 2. Submitted Submissions & Grades */}
+          {stats?.submissionHistory?.map((sub) => (
+            <div key={`sub-${sub.id}`} className="glass-card" style={{ padding: 'var(--spacing-md) var(--spacing-lg)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--spacing-md)', borderLeft: '4px solid var(--accent-success)' }}>
+              <div style={{ display: 'flex', gap: 'var(--spacing-md)', alignItems: 'center' }}>
+                <div className="deadline-date" style={{ background: 'rgba(16, 185, 129, 0.08)', color: 'var(--accent-success)', borderRadius: 'var(--radius-md)', padding: '0.4rem 0.6rem', textAlign: 'center', minWidth: '55px' }}>
+                  <span style={{ fontSize: '1.25rem' }}>✓</span>
                 </div>
-              ))}
+                <div>
+                  <span className="text-xs text-muted" style={{ fontWeight: 600, textTransform: 'uppercase' }}>
+                    {sub.status === 'graded' || sub.status === 'reviewed' ? 'GRADED & RELEASED' : 'SUBMITTED (PENDING ASSESSMENT)'}
+                  </span>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>{sub.assignment_title}</h3>
+                  <p className="text-xs text-secondary">Uploaded: {formatDate(sub.submitted_at)}</p>
+                </div>
+              </div>
+              
+              <div className="flex gap-sm items-center" style={{ flexWrap: 'wrap' }}>
+                {(sub.status === 'graded' || sub.status === 'reviewed') && sub.marks !== null ? (
+                  <div style={{ textAlign: 'right', marginRight: 'var(--spacing-md)' }}>
+                    <span className="text-xs text-muted" style={{ display: 'block' }}>SCORE</span>
+                    <strong style={{ color: 'var(--accent-success)', fontSize: '1.1rem' }}>{sub.marks}</strong>
+                    <span className="text-muted" style={{ fontSize: '0.8rem' }}>/{sub.max_marks}</span>
+                  </div>
+                ) : (
+                  <span className="badge badge-pending" style={{ fontSize: '0.675rem' }}>UNDER REVIEW</span>
+                )}
+                <Link href={`/dashboard/assignments/${sub.assignment_id}`} className="btn btn-sm btn-secondary">
+                  View Assessment
+                </Link>
+              </div>
             </div>
-          ) : (
-            <p className="text-sm text-secondary">No submission history records.</p>
-          )}
-        </div>
+          ))}
 
-        {/* Recent Feedback */}
-        <div className="glass-card" style={{ padding: 'var(--spacing-lg)' }}>
-          <h3 style={{ marginBottom: 'var(--spacing-lg)' }}>Recent Feedback</h3>
-          {stats.recentFeedback?.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
-              {stats.recentFeedback.map((g) => (
-                <div key={g.id} style={{ padding: 'var(--spacing-md)', background: 'var(--bg-glass)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
-                  <div className="flex justify-between items-center" style={{ marginBottom: '0.25rem' }}>
-                    <span className="text-xs font-semibold" style={{ color: 'var(--accent-primary)' }}>{g.assignment_title}</span>
-                    <strong style={{ color: 'var(--accent-success)', fontSize: '0.8125rem' }}>{g.marks} marks</strong>
-                  </div>
-                  <p className="text-xs text-secondary" style={{ fontStyle: 'italic', marginBottom: '0.25rem' }}>&quot;{g.feedback}&quot;</p>
-                  <span className="text-xs text-muted" style={{ display: 'block', textAlign: 'right' }}>Graded by {g.grader_name}</span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-secondary">No feedback published yet.</p>
-          )}
         </div>
-      </div>
+      )}
+      
     </div>
   );
 }

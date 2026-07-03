@@ -77,6 +77,13 @@ export async function POST(request) {
 
     const course = db.prepare('SELECT * FROM courses WHERE id = ?').get(result.lastInsertRowid);
 
+    // Automatically enroll all existing students in the new course
+    const students = db.prepare("SELECT id FROM users WHERE role = 'student'").all();
+    const insertEnrollment = db.prepare('INSERT OR IGNORE INTO course_enrollments (course_id, student_id) VALUES (?, ?)');
+    for (const student of students) {
+      insertEnrollment.run(course.id, student.id);
+    }
+
     return NextResponse.json({ course }, { status: 201 });
   } catch (error) {
     console.error('Courses POST error:', error);

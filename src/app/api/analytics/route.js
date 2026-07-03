@@ -72,14 +72,24 @@ export async function GET() {
           `).all(...myCourseIds)
         : [];
 
+      const publishedAssignments = myCourseIds.length > 0
+        ? db.prepare(`SELECT COUNT(*) as count FROM assignments WHERE course_id IN (${courseIdPlaceholders}) AND status = 'published'`).get(...myCourseIds).count
+        : 0;
+
+      const draftAssignments = myCourseIds.length > 0
+        ? db.prepare(`SELECT COUNT(*) as count FROM assignments WHERE course_id IN (${courseIdPlaceholders}) AND status = 'draft'`).get(...myCourseIds).count
+        : 0;
+
       stats = {
         totalCourses,
         totalStudents,
         totalAssignments,
+        publishedAssignments,
+        draftAssignments,
         activeAssignments,
         expiredAssignments,
         totalSubmissions,
-        pendingSubmissions,
+        pendingSubmissions: pendingSubmissions || 0,
         gradedSubmissions,
         lateSubmissions,
         averageMarks: averageMarks || 0,
@@ -88,13 +98,28 @@ export async function GET() {
       };
     } else {
       // Student
+      const student = db.prepare('SELECT department, semester, section FROM users WHERE id = ?').get(user.id);
+      
       const enrolledCourseIds = db.prepare(
         'SELECT course_id FROM course_enrollments WHERE student_id = ?'
       ).all(user.id).map(e => e.course_id);
       const courseIdPlaceholders = enrolledCourseIds.length > 0 ? enrolledCourseIds.map(() => '?').join(',') : '0';
 
+      const dept = student?.department || 'Computer Science';
+      const sem = student?.semester || 'Semester 3';
+      const sec = student?.section || 'Section A';
+      const wild = `%,${user.id},%`;
+
       const totalAssignments = enrolledCourseIds.length > 0
-        ? db.prepare(`SELECT COUNT(*) as count FROM assignments WHERE course_id IN (${courseIdPlaceholders}) AND status = 'published'`).get(...enrolledCourseIds).count
+        ? db.prepare(`
+            SELECT COUNT(*) as count FROM assignments 
+            WHERE course_id IN (${courseIdPlaceholders}) 
+            AND status = 'published'
+            AND department = ?
+            AND semester = ?
+            AND section = ?
+            AND (target_students IS NULL OR target_students = '' OR target_students = 'all' OR ',' || target_students || ',' LIKE ?)
+          `).get(...enrolledCourseIds, dept, sem, sec, wild).count
         : 0;
 
       const submittedCount = db.prepare('SELECT COUNT(*) as count FROM submissions WHERE student_id = ?').get(user.id).count;
@@ -114,8 +139,12 @@ export async function GET() {
             WHERE a.course_id IN (${courseIdPlaceholders})
             AND a.due_date > datetime('now')
             AND a.status = 'published'
+            AND a.department = ?
+            AND a.semester = ?
+            AND a.section = ?
+            AND (a.target_students IS NULL OR a.target_students = '' OR a.target_students = 'all' OR ',' || a.target_students || ',' LIKE ?)
             ORDER BY a.due_date ASC LIMIT 5
-          `).all(...enrolledCourseIds)
+          `).all(...enrolledCourseIds, dept, sem, sec, wild)
         : [];
 
       const recentFeedback = db.prepare(`

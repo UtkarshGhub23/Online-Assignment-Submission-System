@@ -28,10 +28,34 @@ function NewAssignmentForm() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [courseStudents, setCourseStudents] = useState([]);
+  const [selectedStudentIds, setSelectedStudentIds] = useState([]);
 
   useEffect(() => {
     fetchCourses();
   }, []);
+
+  useEffect(() => {
+    if (form.course_id) {
+      fetchCourseStudents(form.course_id);
+    } else {
+      setCourseStudents([]);
+      setSelectedStudentIds([]);
+    }
+  }, [form.course_id]);
+
+  const fetchCourseStudents = async (courseId) => {
+    try {
+      const res = await fetch(`/api/courses/${courseId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setCourseStudents(data.course.students || []);
+        setSelectedStudentIds([]);
+      }
+    } catch (err) {
+      console.error('Failed to fetch course students:', err);
+    }
+  };
 
   const fetchCourses = async () => {
     try {
@@ -63,7 +87,8 @@ function NewAssignmentForm() {
           max_marks: Number(form.max_marks),
           max_file_size: Number(form.max_file_size),
           due_date: new Date(form.due_date).toISOString(),
-          late_allowed: form.late_allowed ? 1 : 0
+          late_allowed: form.late_allowed ? 1 : 0,
+          target_students: selectedStudentIds.length > 0 ? selectedStudentIds.join(',') : ''
         }),
       });
 
@@ -234,6 +259,38 @@ function NewAssignmentForm() {
               onChange={(e) => setForm({ ...form, detailed_instructions: e.target.value })}
               rows={4}
             />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>Assign to Specific Students (Optional)</span>
+              <span className="text-xs text-muted" style={{ fontWeight: 'normal' }}>Leave empty to assign to everyone in this section</span>
+            </label>
+            {courseStudents.length > 0 ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 'var(--spacing-sm)', padding: 'var(--spacing-md)', background: 'var(--bg-glass)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', maxHeight: '160px', overflowY: 'auto' }}>
+                {courseStudents.map(student => (
+                  <label key={student.id} className="flex items-center gap-sm text-sm" style={{ cursor: 'pointer', padding: '0.25rem 0' }}>
+                    <input
+                      type="checkbox"
+                      checked={selectedStudentIds.includes(student.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedStudentIds([...selectedStudentIds, student.id]);
+                        } else {
+                          setSelectedStudentIds(selectedStudentIds.filter(id => id !== student.id));
+                        }
+                      }}
+                      style={{ width: 'auto', cursor: 'pointer' }}
+                    />
+                    <span>{student.name}</span>
+                  </label>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-secondary" style={{ padding: 'var(--spacing-md)', background: 'var(--bg-glass)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', fontStyle: 'italic' }}>
+                No students are currently enrolled in this course. They must enroll from their course dashboard.
+              </p>
+            )}
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--spacing-md)' }}>

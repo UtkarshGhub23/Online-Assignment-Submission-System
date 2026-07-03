@@ -35,7 +35,7 @@ export default function HelpCenterPage() {
   };
 
   return (
-    <div className="animate-slideUp" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 'var(--spacing-xl)', alignItems: 'start' }}>
+    <div className="animate-slideUp help-layout">
       <div>
         <div className="page-header">
           <div>
@@ -58,7 +58,7 @@ export default function HelpCenterPage() {
         </div>
 
         {/* About / Terms / Privacy */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-lg)' }}>
+        <div className="help-cards-grid">
           <div className="glass-card" style={{ padding: 'var(--spacing-lg)' }}>
             <h3 style={{ marginBottom: 'var(--spacing-md)' }}>About AssignPro</h3>
             <p className="text-xs text-secondary" style={{ lineHeight: 1.6, marginBottom: 'var(--spacing-sm)' }}>

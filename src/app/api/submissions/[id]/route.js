@@ -15,7 +15,7 @@ export async function GET(request, { params }) {
         a.title as assignment_title, a.description as assignment_description,
         a.max_marks, a.due_date, a.course_id,
         c.title as course_title, c.code as course_code,
-        g.marks, g.feedback, g.graded_at, gu.name as graded_by_name
+        g.marks, g.feedback, g.graded_at, g.is_draft, gu.name as graded_by_name
       FROM submissions s
       JOIN users u ON s.student_id = u.id
       JOIN assignments a ON s.assignment_id = a.id
@@ -30,7 +30,7 @@ export async function GET(request, { params }) {
     }
 
     // Authorization check
-    if (user.role === 'student' && submission.student_id !== user.id) {
+    if (user.role === 'student' && Number(submission.student_id) !== Number(user.id)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

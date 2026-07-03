@@ -29,9 +29,25 @@ export async function GET(request) {
       queryConditions.push('c.teacher_id = ?');
       queryParams.push(user.id);
     } else if (user.role === 'student') {
-      // Must be enrolled or course must be open to them
-      queryConditions.push('ce.student_id = ?');
-      queryParams.push(user.id);
+      const student = db.prepare('SELECT department, course, semester, section FROM users WHERE id = ?').get(user.id);
+      if (student) {
+        queryConditions.push('ce.student_id = ?');
+        queryParams.push(Number(user.id));
+
+        queryConditions.push('a.department = ?');
+        queryParams.push(student.department || 'Computer Science');
+
+        queryConditions.push('a.semester = ?');
+        queryParams.push(student.semester || 'Semester 3');
+
+        queryConditions.push('a.section = ?');
+        queryParams.push(student.section || 'Section A');
+
+        queryConditions.push("(a.target_students IS NULL OR a.target_students = '' OR a.target_students = 'all' OR ',' || a.target_students || ',' LIKE ?)");
+        queryParams.push(`%,${user.id},%`);
+      } else {
+        queryConditions.push('1 = 0');
+      }
       // Students should not see draft assignments
       queryConditions.push("a.status != 'draft'");
     }
@@ -111,7 +127,7 @@ export async function POST(request) {
       course_id, title, subject, department, semester, section, assignment_number,
       description, detailed_instructions, supporting_documents, reference_materials,
       due_date, max_marks, status, priority, estimated_time, late_allowed,
-      max_file_size, allowed_file_types
+      max_file_size, allowed_file_types, target_students
     } = body;
 
     if (!course_id || !title || !due_date) {
@@ -126,7 +142,7 @@ export async function POST(request) {
     // Check course ownership
     const course = db.prepare('SELECT * FROM courses WHERE id = ?').get(course_id);
     if (!course) return NextResponse.json({ error: 'Course not found' }, { status: 404 });
-    if (course.teacher_id !== user.id) {
+    if (Number(course.teacher_id) !== Number(user.id)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -135,8 +151,8 @@ export async function POST(request) {
         course_id, title, subject, department, semester, section, assignment_number,
         description, detailed_instructions, supporting_documents, reference_materials,
         due_date, max_marks, created_by, status, priority, estimated_time,
-        late_allowed, max_file_size, allowed_file_types
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        late_allowed, max_file_size, allowed_file_types, target_students
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       course_id,
       title,
@@ -157,7 +173,8 @@ export async function POST(request) {
       estimated_time || '2 hours',
       late_allowed ? 1 : 0,
       max_file_size || 10,
-      allowed_file_types || 'pdf,doc,docx,zip'
+      allowed_file_types || 'pdf,doc,docx,txt,zip,jpg,png,pptx',
+      target_students || ''
     );
 
     const newAssignment = db.prepare('SELECT * FROM assignments WHERE id = ?').get(result.lastInsertRowid);

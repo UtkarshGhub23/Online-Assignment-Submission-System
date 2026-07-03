@@ -21,7 +21,7 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: 'Assignment not found' }, { status: 404 });
     }
 
-    if (assignment.teacher_id !== user.id) {
+    if (Number(assignment.teacher_id) !== Number(user.id)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

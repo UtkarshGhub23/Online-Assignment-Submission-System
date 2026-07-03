@@ -19,7 +19,7 @@ export async function GET(request) {
     let queryConditions = [];
     let queryParams = [];
 
-    if (user.role === 'teacher') {
+    if (user.role === 'faculty') {
       queryConditions.push('c.teacher_id = ?');
       queryParams.push(user.id);
     } else if (user.role === 'student') {
@@ -118,12 +118,15 @@ export async function POST(request) {
 
     // File type validation
     const ext = path.extname(file.name).toLowerCase().replace('.', '');
-    const allowedTypes = assignment.allowed_file_types.split(',').map(t => t.trim().toLowerCase());
-    if (allowedTypes.length > 0 && !allowedTypes.includes(ext)) {
-      return NextResponse.json(
-        { error: `File type not allowed. Approved formats: ${assignment.allowed_file_types}` },
-        { status: 400 }
-      );
+    const allowedStr = assignment.allowed_file_types || '';
+    if (allowedStr.trim()) {
+      const allowedTypes = allowedStr.split(',').map(t => t.trim().toLowerCase());
+      if (!allowedTypes.includes(ext)) {
+        return NextResponse.json(
+          { error: `File type not allowed. Approved formats: ${assignment.allowed_file_types}` },
+          { status: 400 }
+        );
+      }
     }
 
     // File size validation
@@ -155,12 +158,19 @@ export async function POST(request) {
     ).get(assignmentId, user.id);
 
     if (existing) {
-      // Overwrite/Replace submission (Allowed before deadline)
-      if (isLate) {
+      const isRejectedOrReturned = existing.status === 'rejected' || existing.status === 'returned';
+
+      // Block resubmission after deadline UNLESS the submission was rejected/returned by faculty
+      if (isLate && !isRejectedOrReturned) {
         return NextResponse.json(
           { error: 'Cannot replace submission after the deadline.' },
           { status: 400 }
         );
+      }
+
+      // If rejected/returned, clear the old grade so faculty can re-evaluate
+      if (isRejectedOrReturned) {
+        db.prepare('DELETE FROM grades WHERE submission_id = ?').run(existing.id);
       }
 
       // Delete old file

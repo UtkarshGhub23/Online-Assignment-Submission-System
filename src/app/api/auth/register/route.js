@@ -47,6 +47,15 @@ export async function POST(request) {
 
     const user = db.prepare('SELECT * FROM users WHERE id = ?').get(result.lastInsertRowid);
 
+    // Automatically enroll new student in all existing courses
+    if (targetRole === 'student') {
+      const courses = db.prepare('SELECT id FROM courses').all();
+      const insertEnrollment = db.prepare('INSERT OR IGNORE INTO course_enrollments (course_id, student_id) VALUES (?, ?)');
+      for (const course of courses) {
+        insertEnrollment.run(course.id, user.id);
+      }
+    }
+
     // Record registration activity
     db.prepare(
       'INSERT INTO activity_logs (user_id, action, details) VALUES (?, ?, ?)'

@@ -235,8 +235,8 @@ export default function AdminUsersPage() {
           <div className="stat-label">Total Registered Users</div>
         </div>
         <div className="glass-card stat-card cyan">
-          <div className="stat-value">{users.filter(u => u.role === 'teacher').length}</div>
-          <div className="stat-label">Registered Teachers</div>
+          <div className="stat-value">{users.filter(u => u.role === 'faculty').length}</div>
+          <div className="stat-label">Registered Faculty</div>
         </div>
         <div className="glass-card stat-card blue">
           <div className="stat-value">{users.filter(u => u.role === 'student').length}</div>
@@ -262,7 +262,7 @@ export default function AdminUsersPage() {
             />
           </div>
           <div className="tabs" style={{ marginBottom: 0, borderBottom: 'none' }}>
-            {['all', 'admin', 'teacher', 'student'].map(r => (
+            {['all', 'admin', 'faculty', 'student'].map(r => (
               <button key={r} className={`tab ${roleFilter === r ? 'active' : ''}`} onClick={() => setRoleFilter(r)}>
                 {r.charAt(0).toUpperCase() + r.slice(1)}
               </button>
@@ -417,7 +417,7 @@ export default function AdminUsersPage() {
                     onChange={(e) => setCreateForm({ ...createForm, role: e.target.value })}
                   >
                     <option value="student">Student</option>
-                    <option value="teacher">Teacher</option>
+                    <option value="faculty">Faculty</option>
                     <option value="admin">Admin</option>
                   </select>
                 </div>
@@ -498,7 +498,7 @@ export default function AdminUsersPage() {
                   id="importData"
                   className="form-textarea text-sm font-mono"
                   style={{ height: '180px' }}
-                  placeholder={'[\n  { "name": "John Doe", "email": "john@university.edu", "role": "student" },\n  { "name": "Prof Smith", "email": "smith@faculty.edu", "role": "teacher" }\n]'}
+                  placeholder={'[\n  { "name": "John Doe", "email": "john@university.edu", "role": "student" },\n  { "name": "Prof Smith", "email": "smith@faculty.edu", "role": "faculty" }\n]'}
                   value={importJson}
                   onChange={(e) => setImportJson(e.target.value)}
                   required

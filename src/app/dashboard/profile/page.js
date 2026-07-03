@@ -74,7 +74,7 @@ export default function ProfileSettingsPage() {
   };
 
   return (
-    <div className="animate-slideUp" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-xl)', alignItems: 'start' }}>
+    <div className="animate-slideUp profile-layout">
       {/* Left Column: Personal info */}
       <div className="glass-card" style={{ padding: 'var(--spacing-xl)' }}>
         <h2 style={{ marginBottom: 'var(--spacing-md)' }}>Profile Details</h2>
@@ -105,7 +105,7 @@ export default function ProfileSettingsPage() {
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-md)' }}>
+          <div className="profile-inputs-grid">
             <div className="form-group">
               <label className="form-label" htmlFor="userRoleLabel">System Role</label>
               <input
@@ -130,7 +130,7 @@ export default function ProfileSettingsPage() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-md)' }}>
+          <div className="profile-inputs-grid">
             <div className="form-group">
               <label className="form-label" htmlFor="userEmailReadOnly">Email</label>
               <input
@@ -155,7 +155,7 @@ export default function ProfileSettingsPage() {
           </div>
 
           {user?.role === 'student' && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)' }}>
+            <div className="profile-meta-grid">
               <div>
                 <label className="text-xs text-muted" style={{ display: 'block', fontWeight: 600 }}>Dept</label>
                 <span className="text-xs font-semibold">{user.department}</span>

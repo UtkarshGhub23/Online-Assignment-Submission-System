@@ -25,6 +25,28 @@ export default function AssignmentDetailPage() {
   const [confirmAction, setConfirmAction] = useState(null); // 'submit' | 'delete' | 'duplicate' | 'archive' | 'close' | 'publish'
   const fileInputRef = useRef(null);
 
+  // Edit Assignment Modal States
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [courseStudents, setCourseStudents] = useState([]);
+  const [editForm, setEditForm] = useState({
+    title: '',
+    subject: '',
+    department: '',
+    semester: '',
+    section: '',
+    assignment_number: '',
+    description: '',
+    detailed_instructions: '',
+    due_date: '',
+    max_marks: 100,
+    priority: 'medium',
+    estimated_time: '',
+    late_allowed: false,
+    max_file_size: 10,
+    allowed_file_types: ''
+  });
+  const [editSelectedStudentIds, setEditSelectedStudentIds] = useState([]);
+
   useEffect(() => {
     fetchAssignment();
   }, [id]);
@@ -77,10 +99,13 @@ export default function AssignmentDetailPage() {
 
     // Check type
     const ext = file.name.split('.').pop().toLowerCase();
-    const allowed = assignment.allowed_file_types.split(',').map(t => t.trim().toLowerCase());
-    if (allowed.length > 0 && !allowed.includes(ext)) {
-      alert(`Invalid format. Allowed formats: ${assignment.allowed_file_types}`);
-      return;
+    const allowedStr = assignment.allowed_file_types || '';
+    if (allowedStr.trim()) {
+      const allowed = allowedStr.split(',').map(t => t.trim().toLowerCase());
+      if (!allowed.includes(ext)) {
+        alert(`Invalid format. Allowed formats: ${assignment.allowed_file_types}`);
+        return;
+      }
     }
 
     setSelectedFile(file);
@@ -169,12 +194,77 @@ export default function AssignmentDetailPage() {
     }
   };
 
+  const handleOpenEdit = async () => {
+    if (!assignment) return;
+    setEditForm({
+      title: assignment.title,
+      subject: assignment.subject || '',
+      department: assignment.department || 'Computer Science',
+      semester: assignment.semester || 'Semester 3',
+      section: assignment.section || 'Section A',
+      assignment_number: assignment.assignment_number || '',
+      description: assignment.description || '',
+      detailed_instructions: assignment.detailed_instructions || '',
+      due_date: new Date(assignment.due_date).toISOString().slice(0, 16),
+      max_marks: assignment.max_marks || 100,
+      priority: assignment.priority || 'medium',
+      estimated_time: assignment.estimated_time || '',
+      late_allowed: assignment.late_allowed === 1,
+      max_file_size: assignment.max_file_size || 10,
+      allowed_file_types: assignment.allowed_file_types || ''
+    });
+
+    const parsedTargets = assignment.target_students
+      ? assignment.target_students.split(',').map(s => Number(s.trim())).filter(Boolean)
+      : [];
+    setEditSelectedStudentIds(parsedTargets);
+
+    try {
+      const res = await fetch(`/api/courses/${assignment.course_id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setCourseStudents(data.course.students || []);
+      }
+    } catch (err) {
+      console.error('Failed to load course students for edit:', err);
+    }
+    setShowEditModal(true);
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(`/api/assignments/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...editForm,
+          max_marks: Number(editForm.max_marks),
+          max_file_size: Number(editForm.max_file_size),
+          due_date: new Date(editForm.due_date).toISOString(),
+          late_allowed: editForm.late_allowed ? 1 : 0,
+          target_students: editSelectedStudentIds.length > 0 ? editSelectedStudentIds.join(',') : ''
+        })
+      });
+      if (res.ok) {
+        setShowEditModal(false);
+        fetchAssignment();
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to update assignment');
+      }
+    } catch (err) {
+      alert('Error updating assignment');
+    }
+  };
+
   const triggerAction = (actionName) => {
     setConfirmAction(actionName);
     setShowConfirm(true);
   };
 
   const formatDate = (dateStr) => {
+    if (!dateStr) return '—';
     return new Date(dateStr).toLocaleDateString('en', {
       weekday: 'short', month: 'short', day: 'numeric', year: 'numeric',
       hour: '2-digit', minute: '2-digit'
@@ -211,7 +301,7 @@ export default function AssignmentDetailPage() {
             </p>
           </div>
           <div className="flex gap-sm">
-            {(user?.role === 'teacher' || user?.role === 'admin') && (
+            {(user?.role === 'faculty' || user?.role === 'admin') && (
               <>
                 {assignment.status === 'draft' && (
                   <button className="btn btn-sm btn-success" onClick={() => triggerAction('publish')}>Publish</button>
@@ -219,6 +309,7 @@ export default function AssignmentDetailPage() {
                 {assignment.status === 'published' && (
                   <button className="btn btn-sm btn-secondary" onClick={() => triggerAction('close')}>Close</button>
                 )}
+                <button className="btn btn-sm btn-primary" onClick={handleOpenEdit}>Edit Details</button>
                 <button className="btn btn-sm btn-secondary" onClick={() => triggerAction('duplicate')}>Duplicate</button>
                 {assignment.status !== 'archived' && (
                   <button className="btn btn-sm btn-secondary" onClick={() => triggerAction('archive')}>Archive</button>
@@ -299,9 +390,31 @@ export default function AssignmentDetailPage() {
       )}
 
       {/* Student: Submission form */}
-      {user?.role === 'student' && (!assignment.my_submission || (assignment.my_submission && new Date() < new Date(assignment.due_date))) && (
+      {user?.role === 'student' && (
+        !assignment.my_submission ||
+        (assignment.my_submission && new Date() < new Date(assignment.due_date)) ||
+        (assignment.my_submission && (assignment.my_submission.status === 'rejected' || assignment.my_submission.status === 'returned'))
+      ) && (
         <div className="glass-card" style={{ padding: 'var(--spacing-xl)', marginBottom: 'var(--spacing-xl)' }}>
-          <h3>{assignment.my_submission ? 'Replace Your Submission' : 'Submit Assignment'}</h3>
+          <h3>
+            {!assignment.my_submission
+              ? 'Submit Assignment'
+              : assignment.my_submission.status === 'rejected'
+                ? '🔄 Resubmit Assignment (Rejected)'
+                : assignment.my_submission.status === 'returned'
+                  ? '🔄 Resubmit Assignment (Returned for Correction)'
+                  : 'Replace Your Submission'}
+          </h3>
+          {(assignment.my_submission?.status === 'rejected' || assignment.my_submission?.status === 'returned') && (
+            <div style={{ marginTop: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)', padding: 'var(--spacing-md)', background: 'rgba(239, 68, 68, 0.06)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(239, 68, 68, 0.15)' }}>
+              <p className="text-xs font-semibold" style={{ color: 'var(--accent-danger)', marginBottom: '0.25rem' }}>
+                Faculty Feedback:
+              </p>
+              <p className="text-xs text-secondary" style={{ fontStyle: 'italic' }}>
+                {assignment.my_submission.feedback || 'No feedback provided. Please review requirements and resubmit.'}
+              </p>
+            </div>
+          )}
           <p className="text-xs text-muted" style={{ marginBottom: 'var(--spacing-lg)' }}>
             Upload assignment files before the due date. Drag and drop files directly or click browse.
           </p>
@@ -417,7 +530,7 @@ export default function AssignmentDetailPage() {
       )}
 
       {/* Teacher: Enrolled Submissions table */}
-      {(user?.role === 'teacher' || user?.role === 'admin') && (
+      {(user?.role === 'faculty' || user?.role === 'admin') && (
         <div className="glass-card" style={{ padding: 'var(--spacing-xl)' }}>
           <h3 style={{ marginBottom: 'var(--spacing-lg)' }}>Submissions Registry ({assignment.submissions?.length || 0} / {assignment.enrolled_count})</h3>
           {assignment.submissions?.length > 0 ? (
@@ -436,7 +549,7 @@ export default function AssignmentDetailPage() {
                 </thead>
                 <tbody>
                   {assignment.submissions.map((sub) => (
-                    <tr key={sub.id}>
+                    <tr key={sub.id || `not-sub-${sub.student_id}`}>
                       <td><span className="course-card-code" style={{ fontSize: '0.625rem' }}>{sub.enrollment_number || 'N/A'}</span></td>
                       <td>
                         <div className="flex items-center gap-sm">
@@ -444,14 +557,23 @@ export default function AssignmentDetailPage() {
                           <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>{sub.student_name}</span>
                         </div>
                       </td>
-                      <td className="text-xs">
-                        <Link href={`/api/submissions/${sub.id}`} className="text-xs font-semibold" style={{ textDecoration: 'underline' }}>
-                          📄 {sub.file_name}
-                        </Link>
+                      <td className="text-xs font-medium">
+                        {sub.id ? (
+                          <Link href={`/api/submissions/${sub.id}/file`} target="_blank" className="text-xs font-semibold" style={{ textDecoration: 'underline' }}>
+                            📄 {sub.file_name}
+                          </Link>
+                        ) : (
+                          <span style={{ color: 'var(--text-muted)' }}>Not Submitted</span>
+                        )}
                       </td>
                       <td className="text-xs">{formatDate(sub.submitted_at)}</td>
                       <td>
-                        <span className={`badge badge-${sub.status === 'graded' || sub.status === 'approved' ? 'graded' : sub.status === 'rejected' ? 'late' : 'pending'}`}>
+                        <span className={`badge badge-${
+                          sub.status === 'graded' || sub.status === 'approved' ? 'graded' :
+                          sub.status === 'rejected' ? 'late' :
+                          sub.status === 'returned' ? 'pending' :
+                          sub.status === 'not_started' ? 'secondary' : 'pending'
+                        }`}>
                           {sub.status.toUpperCase().replace('_', ' ')}
                         </span>
                       </td>
@@ -459,9 +581,15 @@ export default function AssignmentDetailPage() {
                         {sub.remarks || '—'}
                       </td>
                       <td>
-                        <Link href={`/dashboard/submissions/${sub.id}`} className="btn btn-sm btn-primary">
-                          {sub.marks !== null && !sub.is_draft ? `Review (${sub.marks})` : 'Grade'}
-                        </Link>
+                        {sub.id ? (
+                          <Link href={`/dashboard/submissions/${sub.id}`} className="btn btn-sm btn-primary">
+                            {sub.marks !== null && !sub.is_draft ? `Review (${sub.marks})` : 'Grade'}
+                          </Link>
+                        ) : (
+                          <button className="btn btn-sm btn-secondary" style={{ opacity: 0.5, cursor: 'not-allowed' }} disabled>
+                            Grade
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -492,6 +620,204 @@ export default function AssignmentDetailPage() {
               <button className="btn btn-secondary" onClick={() => setShowConfirm(false)}>Cancel</button>
               <button className="btn btn-primary" onClick={executeConfirmAction}>Confirm</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Assignment Modal */}
+      {showEditModal && (
+        <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '650px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div className="modal-header">
+              <h3 className="modal-title">Edit Assignment Details</h3>
+              <button className="modal-close" onClick={() => setShowEditModal(false)}>✕</button>
+            </div>
+            <form onSubmit={handleEditSubmit} style={{ marginTop: 'var(--spacing-md)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-sm)' }}>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="editTitle">Assignment Title</label>
+                  <input
+                    id="editTitle"
+                    type="text"
+                    className="form-input text-sm"
+                    value={editForm.title}
+                    onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="editSubject">Subject Topic</label>
+                  <input
+                    id="editSubject"
+                    type="text"
+                    className="form-input text-sm"
+                    value={editForm.subject}
+                    onChange={(e) => setEditForm({ ...editForm, subject: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--spacing-xs)' }}>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="editDept">Department</label>
+                  <select
+                    id="editDept"
+                    className="form-select text-xs"
+                    value={editForm.department}
+                    onChange={(e) => setEditForm({ ...editForm, department: e.target.value })}
+                  >
+                    <option value="Computer Science">Computer Science</option>
+                    <option value="Information Technology">Information Technology</option>
+                    <option value="Electrical Engineering">Electrical Engineering</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="editSem">Semester</label>
+                  <select
+                    id="editSem"
+                    className="form-select text-xs"
+                    value={editForm.semester}
+                    onChange={(e) => setEditForm({ ...editForm, semester: e.target.value })}
+                  >
+                    <option value="Semester 1">Semester 1</option>
+                    <option value="Semester 2">Semester 2</option>
+                    <option value="Semester 3">Semester 3</option>
+                    <option value="Semester 4">Semester 4</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="editSec">Section</label>
+                  <select
+                    id="editSec"
+                    className="form-select text-xs"
+                    value={editForm.section}
+                    onChange={(e) => setEditForm({ ...editForm, section: e.target.value })}
+                  >
+                    <option value="Section A">Section A</option>
+                    <option value="Section B">Section B</option>
+                    <option value="Section C">Section C</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="editDesc">Description</label>
+                <textarea
+                  id="editDesc"
+                  className="form-textarea text-xs"
+                  value={editForm.description}
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                  rows={2}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="editInstr">Detailed Instructions</label>
+                <textarea
+                  id="editInstr"
+                  className="form-textarea text-xs"
+                  value={editForm.detailed_instructions}
+                  onChange={(e) => setEditForm({ ...editForm, detailed_instructions: e.target.value })}
+                  rows={3}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Target Specific Students (Optional)</label>
+                {courseStudents.length > 0 ? (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 'var(--spacing-xs)', padding: 'var(--spacing-sm)', background: 'var(--bg-glass)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', maxHeight: '100px', overflowY: 'auto' }}>
+                    {courseStudents.map(student => (
+                      <label key={student.id} className="flex items-center gap-xs text-xs" style={{ cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={editSelectedStudentIds.includes(student.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setEditSelectedStudentIds([...editSelectedStudentIds, student.id]);
+                            } else {
+                              setEditSelectedStudentIds(editSelectedStudentIds.filter(id => id !== student.id));
+                            }
+                          }}
+                          style={{ width: 'auto' }}
+                        />
+                        <span>{student.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted">No students enrolled in this course.</p>
+                )}
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--spacing-sm)' }}>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="editDueDate">Due Date</label>
+                  <input
+                    id="editDueDate"
+                    type="datetime-local"
+                    className="form-input text-xs"
+                    value={editForm.due_date}
+                    onChange={(e) => setEditForm({ ...editForm, due_date: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="editMaxMarks">Max Marks</label>
+                  <input
+                    id="editMaxMarks"
+                    type="number"
+                    className="form-input text-xs"
+                    value={editForm.max_marks}
+                    onChange={(e) => setEditForm({ ...editForm, max_marks: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="editPriority">Priority</label>
+                  <select
+                    id="editPriority"
+                    className="form-select text-xs"
+                    value={editForm.priority}
+                    onChange={(e) => setEditForm({ ...editForm, priority: e.target.value })}
+                  >
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-sm)' }}>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="editFileTypes">Allowed File Extensions</label>
+                  <input
+                    id="editFileTypes"
+                    type="text"
+                    className="form-input text-xs"
+                    placeholder="e.g. pdf,zip,png"
+                    value={editForm.allowed_file_types}
+                    onChange={(e) => setEditForm({ ...editForm, allowed_file_types: e.target.value })}
+                  />
+                </div>
+                <div className="form-group" style={{ display: 'flex', alignItems: 'center', height: '100%', paddingTop: '1.25rem' }}>
+                  <label className="flex items-center gap-sm text-xs" style={{ cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={editForm.late_allowed}
+                      onChange={(e) => setEditForm({ ...editForm, late_allowed: e.target.checked })}
+                      style={{ width: 'auto' }}
+                    />
+                    <span>Allow Late Submissions</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="modal-actions" style={{ marginTop: 'var(--spacing-lg)' }}>
+                <button type="button" className="btn btn-secondary" onClick={() => setShowEditModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary">Save Changes</button>
+              </div>
+            </form>
           </div>
         </div>
       )}

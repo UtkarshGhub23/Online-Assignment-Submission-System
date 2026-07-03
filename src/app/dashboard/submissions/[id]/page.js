@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import Link from 'next/link';
 
 export default function SubmissionDetailPage() {
   const { id } = useParams();
@@ -144,7 +145,7 @@ export default function SubmissionDetailPage() {
             <div>
               <span className="text-xs text-muted">File Submitted</span>
               <p className="text-sm font-semibold" style={{ marginTop: '0.25rem' }}>
-                <Link href={`/api/submissions/${submission.id}`} className="text-sm font-semibold" style={{ textDecoration: 'underline' }}>
+                <Link href={`/api/submissions/${submission.id}/file`} target="_blank" className="text-sm font-semibold" style={{ textDecoration: 'underline' }}>
                   📄 {submission.file_name}
                 </Link>
                 <span className="text-xs text-muted" style={{ marginLeft: '0.5rem' }}>
@@ -188,6 +189,29 @@ export default function SubmissionDetailPage() {
           </div>
         </div>
 
+        {/* Student: Resubmit prompt when rejected/returned */}
+        {user?.role === 'student' && (submission.status === 'rejected' || submission.status === 'returned') && (
+          <div className="glass-card" style={{ padding: 'var(--spacing-xl)', marginTop: 'var(--spacing-lg)', border: '1px solid rgba(239, 68, 68, 0.2)', background: 'rgba(239, 68, 68, 0.03)' }}>
+            <h3 style={{ marginBottom: 'var(--spacing-sm)', color: 'var(--accent-danger)' }}>
+              {submission.status === 'rejected' ? '❌ Submission Rejected' : '🔄 Returned for Correction'}
+            </h3>
+            {submission.feedback && (
+              <div style={{ marginBottom: 'var(--spacing-lg)', padding: 'var(--spacing-md)', background: 'var(--bg-glass)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
+                <span className="text-xs text-muted" style={{ display: 'block', fontWeight: 600 }}>Faculty Feedback:</span>
+                <p className="text-sm text-secondary" style={{ marginTop: '0.25rem', fontStyle: 'italic', lineHeight: 1.6 }}>
+                  &quot;{submission.feedback}&quot;
+                </p>
+              </div>
+            )}
+            <p className="text-sm text-secondary" style={{ marginBottom: 'var(--spacing-lg)' }}>
+              Your submission has been {submission.status}. Please review the feedback above and upload a revised version.
+            </p>
+            <Link href={`/dashboard/assignments/${submission.assignment_id}`} className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+              🔄 Resubmit Assignment
+            </Link>
+          </div>
+        )}
+
         {/* Right Column: Assessment Result / Form */}
         <div>
           {/* Released Grade Display */}
@@ -225,7 +249,7 @@ export default function SubmissionDetailPage() {
           )}
 
           {/* Assessment Editor for Instructors */}
-          {(user?.role === 'teacher' || user?.role === 'admin') && (
+          {(user?.role === 'faculty' || user?.role === 'admin') && (
             <div className="grade-form">
               <h3 style={{ marginBottom: 'var(--spacing-lg)' }}>
                 {isGraded ? 'Update Assessment' : 'Evaluate Submission'}

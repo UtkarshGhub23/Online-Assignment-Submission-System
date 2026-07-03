@@ -67,7 +67,7 @@ export async function PUT(request, { params }) {
     const course = db.prepare('SELECT * FROM courses WHERE id = ?').get(id);
 
     if (!course) return NextResponse.json({ error: 'Course not found' }, { status: 404 });
-    if (user.role !== 'faculty' || course.teacher_id !== user.id) {
+    if (user.role !== 'faculty' || Number(course.teacher_id) !== Number(user.id)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -93,7 +93,7 @@ export async function DELETE(request, { params }) {
     const course = db.prepare('SELECT * FROM courses WHERE id = ?').get(id);
 
     if (!course) return NextResponse.json({ error: 'Course not found' }, { status: 404 });
-    if (user.role !== 'faculty' || course.teacher_id !== user.id) {
+    if (user.role !== 'faculty' || Number(course.teacher_id) !== Number(user.id)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

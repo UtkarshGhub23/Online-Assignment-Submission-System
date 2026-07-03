@@ -66,7 +66,7 @@ function LoginForm() {
     setError('');
     setLoading(true);
     const quickEmail = role === 'faculty' ? 'teacher@assignsys.com' : 'student@assignsys.com';
-    const quickPass = 'teacher123'; // Both mock users use teacher123/student123 seeded values
+    const quickPass = role === 'faculty' ? 'teacher123' : 'student123';
     const result = await login(quickEmail, quickPass, false);
     if (result.success) {
       router.push('/dashboard');

@@ -5,14 +5,21 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 
-const NAV_ITEMS = {
-  common: [
-    { href: '/dashboard', label: 'Dashboard', icon: 'Dashboard' },
-    { href: '/dashboard/courses', label: 'Courses', icon: 'Courses' },
-    { href: '/dashboard/assignments', label: 'Assignments', icon: 'Assignments' },
-    { href: '/dashboard/submissions', label: 'Submissions', icon: 'Submissions' },
-  ],
-};
+const STUDENT_NAV_ITEMS = [
+  { href: '/dashboard/student', label: 'Dashboard', icon: 'Dashboard' },
+  { href: '/dashboard/assignments', label: 'My Assignments', icon: 'Assignments' },
+  { href: '/dashboard/submissions', label: 'My Submissions', icon: 'Submissions' },
+  { href: '/dashboard/grades', label: 'Grades & Feedback', icon: 'Grades' },
+  { href: '/dashboard/profile', label: 'Profile', icon: 'Profile' },
+];
+
+const FACULTY_NAV_ITEMS = [
+  { href: '/dashboard/faculty', label: 'Dashboard', icon: 'Dashboard' },
+  { href: '/dashboard/courses', label: 'Courses', icon: 'Courses' },
+  { href: '/dashboard/assignments', label: 'Assignments', icon: 'Assignments' },
+  { href: '/dashboard/submissions', label: 'Submissions', icon: 'Submissions' },
+  { href: '/dashboard/profile', label: 'Profile Settings', icon: 'Profile' },
+];
 
 export default function DashboardLayout({ children }) {
   const { user, loading, logout, verifyEmail } = useAuth();
@@ -148,6 +155,18 @@ export default function DashboardLayout({ children }) {
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
           </svg>
         );
+      case 'Grades':
+        return (
+          <svg style={{ width: 18, height: 18 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+          </svg>
+        );
+      case 'Profile':
+        return (
+          <svg style={{ width: 18, height: 18 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        );
       default:
         return null;
     }
@@ -172,7 +191,7 @@ export default function DashboardLayout({ children }) {
 
       {/* Sidebar */}
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-        <div className="sidebar-logo">
+        <div className="sidebar-logo" onClick={() => window.location.reload()} style={{ cursor: 'pointer' }}>
           <div className="sidebar-logo-icon" style={{ color: 'white', fontWeight: 'bold' }}>AP</div>
           <span className="sidebar-logo-text">AssignPro</span>
         </div>
@@ -180,20 +199,17 @@ export default function DashboardLayout({ children }) {
         <nav className="sidebar-nav">
           <div className="sidebar-section">
             <div className="sidebar-section-title">Main Menu</div>
-            {NAV_ITEMS.common.map((item) => {
-              const targetHref = item.href === '/dashboard' ? `/dashboard/${user.role}` : item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={targetHref}
-                  className={`sidebar-link ${pathname === targetHref ? 'active' : ''}`}
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <span className="sidebar-link-icon">{renderIcon(item.icon)}</span>
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
+            {(user.role === 'student' ? STUDENT_NAV_ITEMS : FACULTY_NAV_ITEMS).map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`sidebar-link ${pathname === item.href ? 'active' : ''}`}
+                onClick={() => setSidebarOpen(false)}
+              >
+                <span className="sidebar-link-icon">{renderIcon(item.icon)}</span>
+                <span>{item.label}</span>
+              </Link>
+            ))}
           </div>
 
           {user.role === 'faculty' && (
@@ -217,18 +233,6 @@ export default function DashboardLayout({ children }) {
               </Link>
             </div>
           )}
-
-          <div className="sidebar-section">
-            <div className="sidebar-section-title">Support</div>
-            <Link href="/dashboard/help" className={`sidebar-link ${pathname === '/dashboard/help' ? 'active' : ''}`} onClick={() => setSidebarOpen(false)}>
-              <span className="sidebar-link-icon">?</span>
-              <span>Help Center</span>
-            </Link>
-            <Link href="/dashboard/profile" className={`sidebar-link ${pathname === '/dashboard/profile' ? 'active' : ''}`} onClick={() => setSidebarOpen(false)}>
-              <span className="sidebar-link-icon">⚙</span>
-              <span>Profile Settings</span>
-            </Link>
-          </div>
         </nav>
 
         <div className="sidebar-user">
@@ -254,14 +258,18 @@ export default function DashboardLayout({ children }) {
 
       {/* Topbar */}
       <header className="topbar">
-        <div className="topbar-left">
+        <div className="topbar-left" style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
           <button
             className="mobile-menu-btn"
             onClick={() => setSidebarOpen(!sidebarOpen)}
           >
             ☰
           </button>
-          <h2 className="topbar-title">{getPageTitle()}</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}>
+            <span className="text-muted">Workspace</span>
+            <span className="text-muted" style={{ fontSize: '0.7rem' }}>/</span>
+            <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>{getPageTitle()}</span>
+          </div>
         </div>
 
         <div className="topbar-right">
@@ -272,7 +280,7 @@ export default function DashboardLayout({ children }) {
               className="btn btn-sm btn-secondary animate-pulse"
               style={{ background: 'rgba(217, 119, 6, 0.08)', color: '#d97706', borderColor: 'rgba(217, 119, 6, 0.2)' }}
             >
-              {verifyLoading ? 'Verifying...' : 'Verify Email'}
+              {verifyLoading ? 'Verifying...' : <><span className="hidden-mobile">Verify Email</span><span className="show-mobile">⚠️</span></>}
             </button>
           )}
 
@@ -355,7 +363,21 @@ export default function DashboardLayout({ children }) {
 
       {/* Main content */}
       <main className="main-content animate-fadeIn">
-        {children}
+        <div style={{ flex: 1 }}>
+          {children}
+        </div>
+        
+        {/* Footer */}
+        <footer style={{ marginTop: 'var(--spacing-2xl)', padding: 'var(--spacing-lg) 0', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--spacing-md)', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+          <div>
+            <span>© {new Date().getFullYear()} AssignPro LMS. Crafted for modern academics.</span>
+          </div>
+          <div style={{ display: 'flex', gap: 'var(--spacing-md)', alignItems: 'center' }}>
+            <span>v1.2.0</span>
+            <span style={{ color: 'var(--border-color)' }}>|</span>
+            <span style={{ color: 'var(--accent-success)', fontWeight: 500 }}>System Active</span>
+          </div>
+        </footer>
       </main>
     </>
   );

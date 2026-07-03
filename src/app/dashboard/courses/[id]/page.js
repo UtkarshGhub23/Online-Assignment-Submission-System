@@ -65,7 +65,7 @@ export default function CourseDetailPage() {
         <button className={`tab ${tab === 'assignments' ? 'active' : ''}`} onClick={() => setTab('assignments')}>
           Assignments ({course.assignments?.length || 0})
         </button>
-        {(user?.role === 'teacher' || user?.role === 'admin') && (
+        {(user?.role === 'faculty' || user?.role === 'admin') && (
           <button className={`tab ${tab === 'students' ? 'active' : ''}`} onClick={() => setTab('students')}>
             Students ({course.students?.length || 0})
           </button>
@@ -74,7 +74,7 @@ export default function CourseDetailPage() {
 
       {tab === 'assignments' && (
         <div>
-          {(user?.role === 'teacher' || user?.role === 'admin') && (
+          {(user?.role === 'faculty' || user?.role === 'admin') && (
             <div style={{ marginBottom: 'var(--spacing-lg)' }}>
               <Link href={`/dashboard/assignments/new?courseId=${id}`} className="btn btn-primary">
                 + New Assignment

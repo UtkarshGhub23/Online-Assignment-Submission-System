@@ -29,12 +29,12 @@ export async function GET(request) {
         ]);
         break;
 
-      case 'teacher':
+      case 'faculty':
         headers = ['ID', 'Name', 'Email', 'Department', 'Active', 'Courses Commenced', 'Joined On'];
         data = db.prepare(`
           SELECT u.id, u.name, u.email, u.department, u.active, u.created_at,
             (SELECT COUNT(*) FROM courses WHERE teacher_id = u.id) as course_count
-          FROM users u WHERE u.role = 'teacher' ORDER BY u.name
+          FROM users u WHERE u.role = 'faculty' ORDER BY u.name
         `).all().map(u => [
           u.id, u.name, u.email, u.department || '', u.active ? 'Yes' : 'No', u.course_count, u.created_at
         ]);
@@ -80,12 +80,12 @@ export async function GET(request) {
         break;
 
       case 'department':
-        headers = ['Department', 'Students Enrolled', 'Teachers Assigned', 'Active Courses'];
+        headers = ['Department', 'Students Enrolled', 'Faculty Assigned', 'Active Courses'];
         data = db.prepare(`
           SELECT
             CASE WHEN department IS NULL OR department = '' THEN 'General' ELSE department END as dept,
             SUM(CASE WHEN role = 'student' THEN 1 ELSE 0 END) as student_count,
-            SUM(CASE WHEN role = 'teacher' THEN 1 ELSE 0 END) as teacher_count,
+            SUM(CASE WHEN role = 'faculty' THEN 1 ELSE 0 END) as teacher_count,
             (SELECT COUNT(*) FROM courses WHERE id IN (SELECT id FROM courses) AND teacher_id IN (SELECT id FROM users WHERE department = users.department)) as course_count
           FROM users
           GROUP BY dept

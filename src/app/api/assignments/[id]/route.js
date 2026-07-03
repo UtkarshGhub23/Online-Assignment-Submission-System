@@ -28,18 +28,73 @@ export async function GET(request, { params }) {
     let submissionHistory = [];
 
     if (user.role === 'faculty') {
-      submissions = db.prepare(`
-        SELECT s.*, u.name as student_name, u.email as student_email, u.enrollment_number,
-          g.marks, g.feedback, g.graded_at, g.is_draft
-        FROM submissions s
-        JOIN users u ON s.student_id = u.id
-        LEFT JOIN grades g ON s.id = g.submission_id
-        WHERE s.assignment_id = ?
-        ORDER BY s.submitted_at DESC
-      `).all(id);
+      const targetQuery = assignment.target_students 
+        ? assignment.target_students.split(',').map(s => s.trim()).filter(Boolean)
+        : [];
+      
+      let allStudents = db.prepare(`
+        SELECT u.id, u.name, u.email, u.enrollment_number
+        FROM course_enrollments ce
+        JOIN users u ON ce.student_id = u.id
+        WHERE ce.course_id = ?
+        AND u.department = ?
+        AND u.semester = ?
+        AND u.section = ?
+      `).all(assignment.course_id, assignment.department, assignment.semester, assignment.section);
+
+      if (targetQuery.length > 0) {
+        allStudents = allStudents.filter(s => targetQuery.includes(String(s.id)));
+      }
+
+      submissions = allStudents.map(student => {
+        const sub = db.prepare(`
+          SELECT s.id, s.file_name, s.file_size, s.submitted_at, s.remarks, s.delay_minutes, s.status,
+            g.marks, g.feedback, g.graded_at, g.is_draft
+          FROM submissions s
+          LEFT JOIN grades g ON s.id = g.submission_id
+          WHERE s.assignment_id = ? AND s.student_id = ?
+        `).get(id, student.id);
+
+        return {
+          id: sub?.id || null,
+          student_id: student.id,
+          student_name: student.name,
+          student_email: student.email,
+          enrollment_number: student.enrollment_number,
+          file_name: sub?.file_name || null,
+          file_size: sub?.file_size || null,
+          submitted_at: sub?.submitted_at || null,
+          remarks: sub?.remarks || '',
+          delay_minutes: sub?.delay_minutes || 0,
+          status: sub?.status || 'not_started',
+          marks: sub?.marks !== undefined && sub?.marks !== null ? sub.marks : null,
+          feedback: sub?.feedback || null,
+          graded_at: sub?.graded_at || null,
+          is_draft: sub?.is_draft || 0
+        };
+      });
     }
 
     if (user.role === 'student') {
+      const student = db.prepare('SELECT department, course, semester, section FROM users WHERE id = ?').get(user.id);
+      const isEnrolled = db.prepare('SELECT id FROM course_enrollments WHERE course_id = ? AND student_id = ?').get(assignment.course_id, user.id);
+      
+      const isTargeted = !assignment.target_students || 
+                         assignment.target_students.trim() === '' || 
+                         assignment.target_students === 'all' || 
+                         assignment.target_students.split(',').map(s => s.trim()).includes(String(user.id));
+
+      if (
+        !isEnrolled || 
+        assignment.status === 'draft' ||
+        assignment.department !== student.department ||
+        assignment.semester !== student.semester ||
+        assignment.section !== student.section ||
+        !isTargeted
+      ) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+
       mySubmission = db.prepare(`
         SELECT s.*, g.marks, g.feedback, g.graded_at, g.is_draft
         FROM submissions s
@@ -97,7 +152,7 @@ export async function PUT(request, { params }) {
     `).get(id);
 
     if (!assignment) return NextResponse.json({ error: 'Assignment not found' }, { status: 404 });
-    if (user.role !== 'faculty' || assignment.teacher_id !== user.id) {
+    if (user.role !== 'faculty' || Number(assignment.teacher_id) !== Number(user.id)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -106,7 +161,7 @@ export async function PUT(request, { params }) {
       title, subject, department, semester, section, assignment_number,
       description, detailed_instructions, supporting_documents, reference_materials,
       due_date, max_marks, status, priority, estimated_time, late_allowed,
-      max_file_size, allowed_file_types
+      max_file_size, allowed_file_types, target_students
     } = body;
 
     db.prepare(`
@@ -114,7 +169,7 @@ export async function PUT(request, { params }) {
         title = ?, subject = ?, department = ?, semester = ?, section = ?, assignment_number = ?,
         description = ?, detailed_instructions = ?, supporting_documents = ?, reference_materials = ?,
         due_date = ?, max_marks = ?, status = ?, priority = ?, estimated_time = ?,
-        late_allowed = ?, max_file_size = ?, allowed_file_types = ?
+        late_allowed = ?, max_file_size = ?, allowed_file_types = ?, target_students = ?
       WHERE id = ?
     `).run(
       title || assignment.title,
@@ -135,6 +190,7 @@ export async function PUT(request, { params }) {
       late_allowed !== undefined ? (late_allowed ? 1 : 0) : assignment.late_allowed,
       max_file_size || assignment.max_file_size,
       allowed_file_types || assignment.allowed_file_types,
+      target_students ?? assignment.target_students,
       id
     );
 
@@ -183,7 +239,7 @@ export async function DELETE(request, { params }) {
     `).get(id);
 
     if (!assignment) return NextResponse.json({ error: 'Assignment not found' }, { status: 404 });
-    if (user.role !== 'faculty' || assignment.teacher_id !== user.id) {
+    if (user.role !== 'faculty' || Number(assignment.teacher_id) !== Number(user.id)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

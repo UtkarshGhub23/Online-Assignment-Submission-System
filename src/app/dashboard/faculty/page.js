@@ -99,46 +99,51 @@ export default function FacultyDashboardPage() {
         </div>
       </div>
 
-      <div className="stats-grid">
-        <div className="glass-card stat-card purple">
-          <div className="stat-icon purple">
-            <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13" />
-            </svg>
-          </div>
-          <div className="stat-value">{stats.totalAssignments}</div>
-          <div className="stat-label">Total Assignments</div>
+      {/* Faculty Action Banner */}
+      <div className="glass-card" style={{ padding: 'var(--spacing-md) var(--spacing-lg)', marginBottom: 'var(--spacing-lg)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--spacing-md)', borderLeft: '3px solid var(--accent-primary)' }}>
+        <div>
+          <span className="text-xs text-muted" style={{ fontWeight: 600, textTransform: 'uppercase' }}>Actionable Tasks</span>
+          <p className="text-sm font-semibold" style={{ marginTop: '2px' }}>
+            {stats.pendingSubmissions > 0 
+              ? `You have ${stats.pendingSubmissions} coursework submission(s) pending your review & grading.` 
+              : 'All submitted student assignments are fully graded. Great job!'}
+          </p>
         </div>
-        <div className="glass-card stat-card cyan">
-          <div className="stat-icon cyan">
-            <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <div className="stat-value">{stats.activeAssignments}</div>
-          <div className="stat-label">Active Assignments</div>
+        {stats.pendingSubmissions > 0 && (
+          <Link href="/dashboard/submissions" className="btn btn-sm btn-primary">
+            Review Submissions
+          </Link>
+        )}
+      </div>
+
+      <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-xl)' }}>
+        <div className="glass-card stat-card purple" style={{ padding: 'var(--spacing-md) var(--spacing-lg)' }}>
+          <div className="stat-value" style={{ fontSize: '1.5rem' }}>{stats.totalAssignments}</div>
+          <div className="stat-label" style={{ fontSize: '0.75rem' }}>Total Assignments</div>
         </div>
-        <div className="glass-card stat-card amber">
-          <div className="stat-icon amber">
-            <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <div className="stat-value">{stats.pendingSubmissions}</div>
-          <div className="stat-label">Pending Reviews</div>
+        <div className="glass-card stat-card green" style={{ padding: 'var(--spacing-md) var(--spacing-lg)' }}>
+          <div className="stat-value" style={{ fontSize: '1.5rem' }}>{stats.publishedAssignments}</div>
+          <div className="stat-label" style={{ fontSize: '0.75rem' }}>Published Assignments</div>
         </div>
-        <div className="glass-card stat-card green">
-          <div className="stat-icon green">
-            <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-            </svg>
-          </div>
-          <div className="stat-value">{stats.totalSubmissions}</div>
-          <div className="stat-label">Total Submissions</div>
+        <div className="glass-card stat-card" style={{ padding: 'var(--spacing-md) var(--spacing-lg)', background: 'var(--bg-glass)', border: '1px solid var(--border-color)' }}>
+          <div className="stat-value" style={{ fontSize: '1.5rem', color: 'var(--text-secondary)' }}>{stats.draftAssignments}</div>
+          <div className="stat-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Draft Assignments</div>
+        </div>
+        <div className="glass-card stat-card cyan" style={{ padding: 'var(--spacing-md) var(--spacing-lg)' }}>
+          <div className="stat-value" style={{ fontSize: '1.5rem' }}>{stats.totalStudents}</div>
+          <div className="stat-label" style={{ fontSize: '0.75rem' }}>Total Students</div>
+        </div>
+        <div className="glass-card stat-card amber" style={{ padding: 'var(--spacing-md) var(--spacing-lg)' }}>
+          <div className="stat-value" style={{ fontSize: '1.5rem' }}>{stats.pendingSubmissions}</div>
+          <div className="stat-label" style={{ fontSize: '0.75rem' }}>Pending Reviews</div>
+        </div>
+        <div className="glass-card stat-card" style={{ padding: 'var(--spacing-md) var(--spacing-lg)', background: 'var(--bg-glass)', border: '1px solid var(--border-color)' }}>
+          <div className="stat-value" style={{ fontSize: '1.5rem', color: 'var(--accent-info)' }}>{stats.averageMarks ? `${Math.round(stats.averageMarks)}%` : 'N/A'}</div>
+          <div className="stat-label" style={{ fontSize: '0.75rem' }}>Average Class Score</div>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 'var(--spacing-lg)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--spacing-lg)' }}>
         {/* Overview Stats */}
         <div className="glass-card" style={{ padding: 'var(--spacing-lg)' }}>
           <h3 style={{ marginBottom: 'var(--spacing-lg)' }}>Coursework Status Summary</h3>
@@ -165,6 +170,7 @@ export default function FacultyDashboardPage() {
         {/* Upcoming Deadlines */}
         <div className="glass-card" style={{ padding: 'var(--spacing-lg)' }}>
           <h3 style={{ marginBottom: 'var(--spacing-lg)' }}>Upcoming Deadlines</h3>
+          <div className="dashboard-scroll-list">
           {stats.upcomingDeadlines?.length > 0 ? stats.upcomingDeadlines.map((a) => {
             const d = formatDate(a.due_date);
             return (
@@ -185,6 +191,7 @@ export default function FacultyDashboardPage() {
           }) : (
             <p className="text-sm text-secondary">No upcoming deadlines.</p>
           )}
+          </div>
         </div>
 
         {/* Recent Submissions */}
@@ -193,6 +200,7 @@ export default function FacultyDashboardPage() {
             <h3>Recent Submissions</h3>
             <Link href="/dashboard/submissions" className="btn btn-sm btn-secondary">Review all</Link>
           </div>
+          <div className="dashboard-scroll-list">
           {stats.recentSubmissions?.length > 0 ? stats.recentSubmissions.map((s) => (
             <Link key={s.id} href={`/dashboard/submissions/${s.id}`} style={{ textDecoration: 'none' }}>
               <div className="deadline-item">
@@ -211,6 +219,7 @@ export default function FacultyDashboardPage() {
           )) : (
             <p className="text-sm text-secondary">No submissions yet.</p>
           )}
+          </div>
         </div>
       </div>
     </div>
