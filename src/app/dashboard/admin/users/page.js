@@ -252,7 +252,11 @@ export default function AdminUsersPage() {
       <div className="flex justify-between items-center" style={{ marginBottom: 'var(--spacing-lg)', flexWrap: 'wrap', gap: 'var(--spacing-md)' }}>
         <div className="flex gap-md items-center" style={{ flexWrap: 'wrap' }}>
           <div className="search-input-wrapper">
-            <span className="search-icon">🔍</span>
+            <span className="search-icon">
+              <svg style={{ width: 14, height: 14 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </span>
             <input
               type="text"
               className="form-input search-input"

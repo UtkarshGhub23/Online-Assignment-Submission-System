@@ -145,8 +145,9 @@ export default function SubmissionDetailPage() {
             <div>
               <span className="text-xs text-muted">File Submitted</span>
               <p className="text-sm font-semibold" style={{ marginTop: '0.25rem' }}>
-                <Link href={`/api/submissions/${submission.id}/file`} target="_blank" className="text-sm font-semibold" style={{ textDecoration: 'underline' }}>
-                  📄 {submission.file_name}
+                <Link href={`/api/submissions/${submission.id}/file`} target="_blank" className="text-sm font-semibold" style={{ textDecoration: 'underline', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ display: 'inline', verticalAlign: 'middle' }}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                  {submission.file_name}
                 </Link>
                 <span className="text-xs text-muted" style={{ marginLeft: '0.5rem' }}>
                   ({Math.round(submission.file_size / 1024)} KB)
@@ -192,8 +193,18 @@ export default function SubmissionDetailPage() {
         {/* Student: Resubmit prompt when rejected/returned */}
         {user?.role === 'student' && (submission.status === 'rejected' || submission.status === 'returned') && (
           <div className="glass-card" style={{ padding: 'var(--spacing-xl)', marginTop: 'var(--spacing-lg)', border: '1px solid rgba(239, 68, 68, 0.2)', background: 'rgba(239, 68, 68, 0.03)' }}>
-            <h3 style={{ marginBottom: 'var(--spacing-sm)', color: 'var(--accent-danger)' }}>
-              {submission.status === 'rejected' ? '❌ Submission Rejected' : '🔄 Returned for Correction'}
+            <h3 style={{ marginBottom: 'var(--spacing-sm)', color: 'var(--accent-danger)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              {submission.status === 'rejected' ? (
+                <>
+                  <svg width={18} height={18} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  Submission Rejected
+                </>
+              ) : (
+                <>
+                  <svg width={18} height={18} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H18.235" /></svg>
+                  Returned for Correction
+                </>
+              )}
             </h3>
             {submission.feedback && (
               <div style={{ marginBottom: 'var(--spacing-lg)', padding: 'var(--spacing-md)', background: 'var(--bg-glass)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
@@ -207,7 +218,8 @@ export default function SubmissionDetailPage() {
               Your submission has been {submission.status}. Please review the feedback above and upload a revised version.
             </p>
             <Link href={`/dashboard/assignments/${submission.assignment_id}`} className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
-              🔄 Resubmit Assignment
+              <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H18.235" /></svg>
+              Resubmit Assignment
             </Link>
           </div>
         )}

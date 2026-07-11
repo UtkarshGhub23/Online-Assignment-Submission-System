@@ -116,10 +116,10 @@ export default function CoursesPage() {
                 <p className="course-card-desc">{course.description}</p>
                 <div className="course-card-stats">
                   <span className="course-card-stat">
-                    <strong>{course.student_count}</strong> students
+                    <strong>{course.student_count}</strong>{" students"}
                   </span>
                   <span className="course-card-stat">
-                    <strong>{course.assignment_count}</strong> assignments
+                    <strong>{course.assignment_count}</strong>{" assignments"}
                   </span>
                 </div>
               </div>

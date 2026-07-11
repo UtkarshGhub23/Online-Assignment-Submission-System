@@ -396,14 +396,22 @@ export default function AssignmentDetailPage() {
         (assignment.my_submission && (assignment.my_submission.status === 'rejected' || assignment.my_submission.status === 'returned'))
       ) && (
         <div className="glass-card" style={{ padding: 'var(--spacing-xl)', marginBottom: 'var(--spacing-xl)' }}>
-          <h3>
-            {!assignment.my_submission
-              ? 'Submit Assignment'
-              : assignment.my_submission.status === 'rejected'
-                ? '🔄 Resubmit Assignment (Rejected)'
-                : assignment.my_submission.status === 'returned'
-                  ? '🔄 Resubmit Assignment (Returned for Correction)'
-                  : 'Replace Your Submission'}
+          <h3 style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            {!assignment.my_submission ? (
+              'Submit Assignment'
+            ) : assignment.my_submission.status === 'rejected' ? (
+              <>
+                <svg width={18} height={18} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H18.235" /></svg>
+                Resubmit Assignment (Rejected)
+              </>
+            ) : assignment.my_submission.status === 'returned' ? (
+              <>
+                <svg width={18} height={18} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H18.235" /></svg>
+                Resubmit Assignment (Returned for Correction)
+              </>
+            ) : (
+              'Replace Your Submission'
+            )}
           </h3>
           {(assignment.my_submission?.status === 'rejected' || assignment.my_submission?.status === 'returned') && (
             <div style={{ marginTop: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)', padding: 'var(--spacing-md)', background: 'rgba(239, 68, 68, 0.06)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(239, 68, 68, 0.15)' }}>
@@ -420,7 +428,7 @@ export default function AssignmentDetailPage() {
           </p>
 
           <div
-            className={`file-upload-zone ${dragOver ? 'drag-over' : ''}`}
+            className={`upload-zone ${dragOver ? 'drag-over' : ''}`}
             onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
             onDragLeave={() => setDragOver(false)}
             onDrop={(e) => {
@@ -436,7 +444,9 @@ export default function AssignmentDetailPage() {
               style={{ display: 'none' }}
               onChange={(e) => handleFileSelect(e.target.files[0])}
             />
-            <div className="upload-icon" style={{ opacity: 0.6, fontSize: '2rem' }}>📁</div>
+            <div className="upload-icon" style={{ opacity: 0.6, color: 'var(--brand)' }}>
+              <svg width={36} height={36} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ margin: '0 auto' }}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+            </div>
             {selectedFile ? (
               <div>
                 <p className="upload-text" style={{ color: 'var(--accent-success)' }}>
@@ -486,7 +496,10 @@ export default function AssignmentDetailPage() {
             </div>
             <div>
               <span className="text-xs text-muted">File Submitted</span>
-              <p className="text-sm font-semibold">📄 {assignment.my_submission.file_name}</p>
+              <p className="text-sm font-semibold" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ display: 'inline', verticalAlign: 'middle' }}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                {assignment.my_submission.file_name}
+              </p>
             </div>
             <div>
               <span className="text-xs text-muted">Submission Date/Time</span>
@@ -559,8 +572,9 @@ export default function AssignmentDetailPage() {
                       </td>
                       <td className="text-xs font-medium">
                         {sub.id ? (
-                          <Link href={`/api/submissions/${sub.id}/file`} target="_blank" className="text-xs font-semibold" style={{ textDecoration: 'underline' }}>
-                            📄 {sub.file_name}
+                          <Link href={`/api/submissions/${sub.id}/file`} target="_blank" className="text-xs font-semibold" style={{ textDecoration: 'underline', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <svg width={12} height={12} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ display: 'inline', verticalAlign: 'middle' }}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                            {sub.file_name}
                           </Link>
                         ) : (
                           <span style={{ color: 'var(--text-muted)' }}>Not Submitted</span>
